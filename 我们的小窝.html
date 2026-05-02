@@ -122,7 +122,7 @@
 
 <div class="header">
   <div class="header-title" id="site-title">我们的小窝</div>
-  <div class="sync-status" id="sync-status" style="background:#f5f5f5;color:#999;">本地模式</div>
+  <div class="sync-status" id="sync-status" style="background:#fff3e0;color:#ff9800;">加载中...</div>
 </div>
 
 <div class="nav">
@@ -201,15 +201,16 @@
     
     <div class="setting-section">
       <div class="setting-title">☁️ 云端同步</div>
+      <div style="font-size:12px;color:#999;margin-bottom:12px;padding:8px;background:#f5f5f5;border-radius:8px;">
+        ✓ 云端已自动配置，多设备自动同步
+      </div>
       <div class="cloud-toggle">
         <div class="toggle on" id="auto-sync-btn" onclick="toggleAutoSync()"></div>
         <div><div style="font-size:14px;color:#333;">自动同步</div><div style="font-size:12px;color:#999;">保存时自动同步到云端</div></div>
       </div>
-      <div class="form-group"><label class="form-label">API Key</label><input type="text" id="cloud-key" placeholder="JSONBin API Key"></div>
-      <div class="form-group"><label class="form-label">Bin ID</label><input type="text" id="cloud-bin" placeholder="同步后自动填充"></div>
       <div class="cloud-actions">
-        <button class="btn btn-small" onclick="doCloudSync()" style="flex:1;">☁️ 同步到云端</button>
-        <button class="btn btn-outline btn-small" onclick="doCloudLoad()" style="flex:1;">📥 从云端加载</button>
+        <button class="btn btn-small" onclick="doCloudSync()" style="flex:1;">☁️ 立即同步</button>
+        <button class="btn btn-outline btn-small" onclick="doCloudLoad()" style="flex:1;">📥 加载云端</button>
       </div>
       <div id="cloud-msg"></div>
     </div>
@@ -301,6 +302,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ============ 默认云端配置（不可删除） ============
+var DEFAULT_API_KEY = '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq';
+var DEFAULT_BIN_ID = '69f5e3bd856a68218999db49';
+
 // ============ 全局数据 ============
 var appData = {
   settings: { title: '我们的小窝', name1: '', name2: '', startDate: '' },
@@ -308,12 +313,14 @@ var appData = {
 };
 
 var cloudCfg = {
-  apiKey: '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq',
-  binId: '69f5e3bd856a68218999db49',
-  autoSync: true
+  apiKey: DEFAULT_API_KEY,
+  binId: DEFAULT_BIN_ID,
+  autoSync: true,
+  lastSync: null
 };
 
 var diaryPhotos = []; // 临时日记照片
+var isFirstLoad = true; // 首次加载标志
 
 // ============ 初始化 ============
 (function init() {
@@ -328,13 +335,17 @@ var diaryPhotos = []; // 临时日记照片
     try { cloudCfg = JSON.parse(savedCloud); } catch(e) {}
   }
   
+  // 确保使用默认API Key和Bin ID
+  cloudCfg.apiKey = DEFAULT_API_KEY;
+  cloudCfg.binId = DEFAULT_BIN_ID;
+  
   // 填充表单
   $('set-title').value = appData.settings.title || '我们的小窝';
   $('set-name1').value = appData.settings.name1 || '';
   $('set-name2').value = appData.settings.name2 || '';
   $('set-start-date').value = appData.settings.startDate || '';
-  $('cloud-key').value = cloudCfg.apiKey || '';
-  $('cloud-bin').value = cloudCfg.binId || '';
+  $('cloud-key').value = cloudCfg.apiKey;
+  $('cloud-bin').value = cloudCfg.binId;
   
   // 自动同步开关
   updateAutoSyncUI();
@@ -343,16 +354,136 @@ var diaryPhotos = []; // 临时日记照片
   var now = new Date();
   $('d-date').value = now.toISOString().slice(0, 10);
   
+  // 判断是否需要首次加载云端数据
+  var hasLocalData = saved && appData && (
+    appData.diaries.length > 0 || 
+    appData.photos.length > 0 || 
+    appData.anniversaries.length > 0 ||
+    appData.wishlist.length > 0 ||
+    appData.settings.name1 ||
+    appData.settings.name2 ||
+    appData.settings.startDate
+  );
+  
   // 渲染
   renderAll();
-  updateSyncStatus('idle');
+  
+  // 首次加载：自动从云端获取数据
+  if (!hasLocalData) {
+    // 新设备或无数据：自动从云端加载
+    updateSyncStatus('syncing', '首次加载中...');
+    $('cloud-msg').innerHTML = '<div class="msg msg-loading">首次加载，正在从云端获取数据...</div>';
+    autoLoadFromCloud();
+  } else {
+    // 有本地数据：检查是否需要同步
+    if (cloudCfg.autoSync && cloudCfg.lastSync) {
+      var last = new Date(cloudCfg.lastSync);
+      var now2 = new Date();
+      // 如果上次同步超过5分钟，尝试更新
+      if ((now2 - last) > 5 * 60 * 1000) {
+        autoLoadFromCloudSilent();
+      }
+    }
+    updateSyncStatus('idle');
+  }
 })();
+
+// 静默从云端加载（不显示加载动画）
+function autoLoadFromCloudSilent() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest', true);
+  xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 10000; // 10秒超时
+  
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      try {
+        var res = JSON.parse(xhr.responseText);
+        if (res.record) {
+          var cloudData = res.record;
+          var cloudTime = cloudData._syncTime || 0;
+          var localTime = appData._syncTime || 0;
+          
+          // 如果云端数据更新，则使用云端数据
+          if (cloudTime > localTime) {
+            appData = cloudData;
+            saveLocal();
+            renderAll();
+            updateSyncStatus('synced', '已同步');
+          } else {
+            updateSyncStatus('synced', '已是最新');
+          }
+        }
+      } catch(e) {}
+    }
+  };
+  
+  xhr.onerror = function() {
+    // 静默失败，不影响使用
+    updateSyncStatus('idle');
+  };
+  
+  xhr.send();
+}
+
+// 首次加载云端数据
+function autoLoadFromCloud() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest', true);
+  xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      try {
+        var res = JSON.parse(xhr.responseText);
+        if (res.record) {
+          appData = res.record;
+          saveLocal();
+          
+          // 更新表单
+          $('set-title').value = appData.settings.title || '我们的小窝';
+          $('set-name1').value = appData.settings.name1 || '';
+          $('set-name2').value = appData.settings.name2 || '';
+          $('set-start-date').value = appData.settings.startDate || '';
+          
+          renderAll();
+          $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 首次加载成功，数据已从云端同步</div>';
+          updateSyncStatus('synced', '已同步');
+          showToast('首次加载成功');
+        } else {
+          $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 云端暂无数据，将从此设备开始记录</div>';
+          updateSyncStatus('idle');
+        }
+      } catch(e) {
+        $('cloud-msg').innerHTML = '<div class="msg msg-error">数据解析失败，使用空白数据</div>';
+        updateSyncStatus('idle');
+      }
+    } else if (xhr.status === 404) {
+      $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 云端暂无数据，将从此设备开始记录</div>';
+      updateSyncStatus('idle');
+    } else {
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 加载失败: ' + xhr.status + '，使用本地数据</div>';
+      updateSyncStatus('error', '加载失败');
+    }
+  };
+  
+  xhr.onerror = function() {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误，使用本地数据</div>';
+    updateSyncStatus('error', '网络错误');
+  };
+  
+  xhr.send();
+}
 
 function $(id) { return document.getElementById(id); }
 
 // ============ 保存数据 ============
 function saveLocal() {
   try {
+    // 添加同步时间戳
+    appData._syncTime = Date.now();
+    cloudCfg.lastSync = new Date().toISOString();
+    
     localStorage.setItem('couple_data', JSON.stringify(appData));
     localStorage.setItem('couple_cloud', JSON.stringify(cloudCfg));
     return true;
@@ -363,12 +494,13 @@ function saveLocal() {
 }
 
 function saveAndSync() {
-  if (!saveLocal()) return;
+  if (!saveLocal()) return true; // 本地保存成功
   
-  // 自动同步
+  // 自动同步（静默）
   if (cloudCfg.autoSync && cloudCfg.apiKey && cloudCfg.binId) {
     cloudSync(true);
   }
+  return true;
 }
 
 // ============ Toast ============
@@ -807,8 +939,9 @@ function doSaveSettings() {
   appData.settings.name2 = $('set-name2').value;
   appData.settings.startDate = $('set-start-date').value;
   
-  cloudCfg.apiKey = $('cloud-key').value;
-  cloudCfg.binId = $('cloud-bin').value;
+  // 云端配置保持默认值，不允许修改
+  cloudCfg.apiKey = DEFAULT_API_KEY;
+  cloudCfg.binId = DEFAULT_BIN_ID;
   
   if (saveLocal()) {
     renderHome();
@@ -838,10 +971,13 @@ function updateAutoSyncUI() {
 }
 
 // ============ 云同步 ============
+var syncRetryCount = 0;
+var maxSyncRetries = 3;
+
 function cloudSync(silent) {
   if (!cloudCfg.apiKey || !cloudCfg.binId) {
     if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写API Key和Bin ID</div>';
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">云端配置无效</div>';
     }
     return;
   }
@@ -851,12 +987,19 @@ function cloudSync(silent) {
   }
   updateSyncStatus('syncing', '同步中...');
   
+  doCloudSyncRequest(silent, 0);
+}
+
+function doCloudSyncRequest(silent, retryCount) {
   var xhr = new XMLHttpRequest();
   xhr.open('PUT', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 15000; // 15秒超时
   
   xhr.onload = function() {
+    syncRetryCount = 0; // 重置重试计数
+    
     if (xhr.status === 200) {
       try {
         var res = JSON.parse(xhr.responseText);
@@ -867,13 +1010,16 @@ function cloudSync(silent) {
         }
       } catch(e) {}
       
+      cloudCfg.lastSync = new Date().toISOString();
+      saveLocal();
+      
       if (!silent) {
         $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 同步成功 ' + new Date().toLocaleTimeString() + '</div>';
       }
       updateSyncStatus('synced', '已同步');
       if (!silent) showToast('同步成功');
     } else {
-      var errMsg = xhr.status === 403 ? '权限不足' : xhr.status === 404 ? 'Bin不存在' : '错误 ' + xhr.status;
+      var errMsg = getErrorMessage(xhr.status);
       if (!silent) {
         $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 同步失败: ' + errMsg + '</div>';
       }
@@ -883,34 +1029,70 @@ function cloudSync(silent) {
   };
   
   xhr.onerror = function() {
-    if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误</div>';
+    // 网络错误，尝试重试
+    if (retryCount < maxSyncRetries) {
+      setTimeout(function() {
+        doCloudSyncRequest(silent, retryCount + 1);
+      }, 1000 * (retryCount + 1)); // 递增延迟重试
+    } else {
+      syncRetryCount = 0;
+      if (!silent) {
+        $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误，已重试' + maxSyncRetries + '次</div>';
+      }
+      updateSyncStatus('error', '网络错误');
+      if (!silent) showToast('网络错误');
     }
-    updateSyncStatus('error', '网络错误');
-    if (!silent) showToast('网络错误');
+  };
+  
+  xhr.ontimeout = function() {
+    if (retryCount < maxSyncRetries) {
+      setTimeout(function() {
+        doCloudSyncRequest(silent, retryCount + 1);
+      }, 1000 * (retryCount + 1));
+    } else {
+      syncRetryCount = 0;
+      if (!silent) {
+        $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 请求超时</div>';
+      }
+      updateSyncStatus('error', '超时');
+      if (!silent) showToast('请求超时');
+    }
   };
   
   xhr.send(JSON.stringify(appData));
 }
 
+function getErrorMessage(status) {
+  var messages = {
+    400: '请求格式错误',
+    401: '认证失败',
+    403: '权限不足，请检查API Key',
+    404: 'Bin不存在',
+    413: '数据过大',
+    429: '请求过于频繁'
+  };
+  return messages[status] || '错误 ' + status;
+}
+
 function doCloudSync() {
-  cloudCfg.apiKey = $('cloud-key').value;
-  cloudCfg.binId = $('cloud-bin').value;
+  // 云端配置保持默认值
+  cloudCfg.apiKey = DEFAULT_API_KEY;
+  cloudCfg.binId = DEFAULT_BIN_ID;
+  $('cloud-key').value = cloudCfg.apiKey;
+  $('cloud-bin').value = cloudCfg.binId;
   saveLocal();
   cloudSync(false);
 }
 
 function doCloudLoad() {
-  var k = $('cloud-key').value.trim();
-  var b = $('cloud-bin').value.trim();
-  
-  if (!k || !b) {
-    $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写API Key和Bin ID</div>';
-    return;
-  }
+  // 使用默认API Key和Bin ID
+  var k = DEFAULT_API_KEY;
+  var b = DEFAULT_BIN_ID;
   
   cloudCfg.apiKey = k;
   cloudCfg.binId = b;
+  $('cloud-key').value = k;
+  $('cloud-bin').value = b;
   saveLocal();
   
   $('cloud-msg').innerHTML = '<div class="msg msg-loading">加载中...</div>';
@@ -919,6 +1101,7 @@ function doCloudLoad() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + b + '/latest', true);
   xhr.setRequestHeader('X-Master-Key', k);
+  xhr.timeout = 15000;
   
   xhr.onload = function() {
     if (xhr.status === 200) {
@@ -935,15 +1118,20 @@ function doCloudLoad() {
           $('set-start-date').value = appData.settings.startDate || '';
           
           renderAll();
-          $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 加载成功</div>';
+          $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 加载成功，数据已更新</div>';
           updateSyncStatus('synced', '已同步');
           showToast('加载成功');
         }
       } catch(e) {
         $('cloud-msg').innerHTML = '<div class="msg msg-error">数据解析失败</div>';
+        updateSyncStatus('error');
       }
+    } else if (xhr.status === 404) {
+      $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 云端暂无数据</div>';
+      updateSyncStatus('idle');
+      showToast('云端暂无数据');
     } else {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 加载失败: ' + xhr.status + '</div>';
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 加载失败: ' + getErrorMessage(xhr.status) + '</div>';
       updateSyncStatus('error');
     }
   };
@@ -951,6 +1139,13 @@ function doCloudLoad() {
   xhr.onerror = function() {
     $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误</div>';
     updateSyncStatus('error');
+    showToast('网络错误');
+  };
+  
+  xhr.ontimeout = function() {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 请求超时</div>';
+    updateSyncStatus('error');
+    showToast('请求超时');
   };
   
   xhr.send();
