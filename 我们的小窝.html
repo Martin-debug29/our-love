@@ -400,12 +400,12 @@
 </div>
 
 <div class="nav">
-  <button class="nav-btn active" onclick="showPage('home')">首页</button>
-  <button class="nav-btn" onclick="showPage('diary')">日记</button>
-  <button class="nav-btn" onclick="showPage('album')">相册</button>
-  <button class="nav-btn" onclick="showPage('anniversary')">纪念日</button>
-  <button class="nav-btn" onclick="showPage('wishlist')">心愿</button>
-  <button class="nav-btn" onclick="showPage('settings')">设置</button>
+  <button class="nav-btn active" onclick="showPage('home', this)">首页</button>
+  <button class="nav-btn" onclick="showPage('diary', this)">日记</button>
+  <button class="nav-btn" onclick="showPage('album', this)">相册</button>
+  <button class="nav-btn" onclick="showPage('anniversary', this)">纪念日</button>
+  <button class="nav-btn" onclick="showPage('wishlist', this)">心愿</button>
+  <button class="nav-btn" onclick="showPage('settings', this)">设置</button>
 </div>
 
 <div class="main">
@@ -735,9 +735,19 @@ function readCloudConfigFromUI() {
   const inputKey = document.getElementById('cloud-api-key').value.trim();
   const inputBinId = document.getElementById('cloud-bin-id').value.trim();
 
-  // 用户有输入就用用户的，否则保持原值
-  if (inputKey) cloudConfig.apiKey = inputKey;
-  if (inputBinId) cloudConfig.binId = inputBinId;
+  // 如果输入框有值就用用户的，否则保持现有值（不要覆盖为空白）
+  if (inputKey) {
+    cloudConfig.apiKey = inputKey;
+  } else if (!cloudConfig.apiKey) {
+    // 如果现有值也没有，使用默认值
+    cloudConfig.apiKey = DEFAULT_CLOUD_CONFIG.apiKey;
+  }
+
+  if (inputBinId) {
+    cloudConfig.binId = inputBinId;
+  } else if (!cloudConfig.binId) {
+    cloudConfig.binId = DEFAULT_CLOUD_CONFIG.binId;
+  }
 
   saveCloudConfig();
 }
@@ -1059,17 +1069,26 @@ let data = {
 };
 
 function save() {
-  localStorage.setItem('couple_data', JSON.stringify(data));
-  // 自动同步到云端
-  if (cloudConfig.enabled && cloudConfig.apiKey) {
-    syncToCloud();
+  try {
+    localStorage.setItem('couple_data', JSON.stringify(data));
+    // 自动同步到云端（异步，不阻塞保存）
+    if (cloudConfig.enabled && cloudConfig.apiKey) {
+      syncToCloud().catch(e => console.error('Sync error:', e));
+    }
+  } catch(e) {
+    console.error('Save error:', e);
+    showToast('保存失败，请重试');
   }
 }
 
 function load() {
-  const s = localStorage.getItem('couple_data');
-  if (s) {
-    try { data = JSON.parse(s); } catch(e) {}
+  try {
+    const s = localStorage.getItem('couple_data');
+    if (s) {
+      data = JSON.parse(s);
+    }
+  } catch(e) {
+    console.error('Load error:', e);
   }
 }
 
@@ -1094,11 +1113,20 @@ function setTodayDate() {
 }
 
 // ---- 页面切换 ----
-function showPage(name) {
+function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (btn) btn.classList.add('active');
+  else {
+    // 如果没有传入按钮，根据 name 找到对应的按钮
+    const btns = document.querySelectorAll('.nav-btn');
+    btns.forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+name+"'")) {
+        b.classList.add('active');
+      }
+    });
+  }
   if (name === 'home') renderHome();
 }
 
@@ -1183,20 +1211,25 @@ function renderHome() {
 
 // ---- 日记 ----
 function saveDiary() {
-  const title = document.getElementById('diary-title-input').value.trim();
-  const content = document.getElementById('diary-content-input').value.trim();
-  const date = document.getElementById('diary-date-input').value;
-  const author = document.getElementById('diary-author-input').value;
-  const mood = document.getElementById('diary-mood-input').value;
-  if (!title || !content) { alert('请填写标题和内容～'); return; }
-  data.diaries.push({ id: Date.now().toString(), title, content, date, author, mood });
-  save();
-  closeModal('diary-modal');
-  document.getElementById('diary-title-input').value = '';
-  document.getElementById('diary-content-input').value = '';
-  renderDiaryList();
-  renderHome();
-  showToast('日记已保存');
+  try {
+    const title = document.getElementById('diary-title-input').value.trim();
+    const content = document.getElementById('diary-content-input').value.trim();
+    const date = document.getElementById('diary-date-input').value;
+    const author = document.getElementById('diary-author-input').value;
+    const mood = document.getElementById('diary-mood-input').value;
+    if (!title || !content) { alert('请填写标题和内容～'); return; }
+    data.diaries.push({ id: Date.now().toString(), title, content, date, author, mood });
+    save();
+    closeModal('diary-modal');
+    document.getElementById('diary-title-input').value = '';
+    document.getElementById('diary-content-input').value = '';
+    renderDiaryList();
+    renderHome();
+    showToast('日记已保存');
+  } catch(e) {
+    console.error('Save diary error:', e);
+    alert('保存失败，请重试');
+  }
 }
 
 function renderDiaryList() {
@@ -1329,18 +1362,23 @@ function deletePhoto(id) {
 
 // ---- 纪念日 ----
 function saveAnniversary() {
-  const name = document.getElementById('ann-name-input').value.trim();
-  const date = document.getElementById('ann-date-input').value;
-  const note = document.getElementById('ann-note-input').value.trim();
-  if (!name || !date) { alert('请填写名称和日期～'); return; }
-  data.anniversaries.push({ id: Date.now().toString(), name, date, note });
-  save();
-  closeModal('ann-modal');
-  document.getElementById('ann-name-input').value = '';
-  document.getElementById('ann-note-input').value = '';
-  renderAnniversaryList();
-  renderHome();
-  showToast('纪念日已添加');
+  try {
+    const name = document.getElementById('ann-name-input').value.trim();
+    const date = document.getElementById('ann-date-input').value;
+    const note = document.getElementById('ann-note-input').value.trim();
+    if (!name || !date) { alert('请填写名称和日期～'); return; }
+    data.anniversaries.push({ id: Date.now().toString(), name, date, note });
+    save();
+    closeModal('ann-modal');
+    document.getElementById('ann-name-input').value = '';
+    document.getElementById('ann-note-input').value = '';
+    renderAnniversaryList();
+    renderHome();
+    showToast('纪念日已添加');
+  } catch(e) {
+    console.error('Save anniversary error:', e);
+    alert('保存失败，请重试');
+  }
 }
 
 function renderAnniversaryList() {
@@ -1381,16 +1419,21 @@ function deleteAnn(id) {
 
 // ---- 心愿清单 ----
 function saveWish() {
-  const text = document.getElementById('wish-text-input').value.trim();
-  const cat = document.getElementById('wish-cat-input').value;
-  if (!text) { alert('请填写心愿内容～'); return; }
-  data.wishlist.push({ id: Date.now().toString(), text, cat, done: false });
-  save();
-  closeModal('wish-modal');
-  document.getElementById('wish-text-input').value = '';
-  renderWishList();
-  renderHome();
-  showToast('心愿已添加');
+  try {
+    const text = document.getElementById('wish-text-input').value.trim();
+    const cat = document.getElementById('wish-cat-input').value;
+    if (!text) { alert('请填写心愿内容～'); return; }
+    data.wishlist.push({ id: Date.now().toString(), text, cat, done: false });
+    save();
+    closeModal('wish-modal');
+    document.getElementById('wish-text-input').value = '';
+    renderWishList();
+    renderHome();
+    showToast('心愿已添加');
+  } catch(e) {
+    console.error('Save wish error:', e);
+    alert('保存失败，请重试');
+  }
 }
 
 function toggleWish(id) {
@@ -1443,14 +1486,19 @@ function applySettings() {
 }
 
 function saveSettings() {
-  data.settings.title = document.getElementById('set-title').value || '我们的小窝';
-  data.settings.name1 = document.getElementById('set-name1').value;
-  data.settings.name2 = document.getElementById('set-name2').value;
-  data.settings.startDate = document.getElementById('set-start-date').value;
-  save();
-  applySettings();
-  renderHome();
-  showToast('设置已保存');
+  try {
+    data.settings.title = document.getElementById('set-title').value || '我们的小窝';
+    data.settings.name1 = document.getElementById('set-name1').value;
+    data.settings.name2 = document.getElementById('set-name2').value;
+    data.settings.startDate = document.getElementById('set-start-date').value;
+    save();
+    applySettings();
+    renderHome();
+    showToast('设置已保存');
+  } catch(e) {
+    console.error('Save settings error:', e);
+    alert('保存失败，请重试');
+  }
 }
 
 // ---- 数据导出/导入 ----
