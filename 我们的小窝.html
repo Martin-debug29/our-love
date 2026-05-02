@@ -393,13 +393,13 @@ function autoLoadFromCloudSilent() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest', true);
   xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
-  xhr.timeout = 10000; // 10秒超时
+  xhr.timeout = 8000; // 8秒超时
   
   xhr.onload = function() {
     if (xhr.status === 200) {
       try {
         var res = JSON.parse(xhr.responseText);
-        if (res.record) {
+        if (res.record && Object.keys(res.record).length > 0) {
           var cloudData = res.record;
           var cloudTime = cloudData._syncTime || 0;
           var localTime = appData._syncTime || 0;
@@ -409,17 +409,21 @@ function autoLoadFromCloudSilent() {
             appData = cloudData;
             saveLocal();
             renderAll();
-            updateSyncStatus('synced', '已同步');
-          } else {
-            updateSyncStatus('synced', '已是最新');
           }
         }
       } catch(e) {}
+      updateSyncStatus('synced', '已同步');
+    } else {
+      updateSyncStatus('idle');
     }
   };
   
   xhr.onerror = function() {
     // 静默失败，不影响使用
+    updateSyncStatus('idle');
+  };
+  
+  xhr.ontimeout = function() {
     updateSyncStatus('idle');
   };
   
@@ -431,12 +435,13 @@ function autoLoadFromCloud() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest', true);
   xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 10000; // 10秒超时
   
   xhr.onload = function() {
     if (xhr.status === 200) {
       try {
         var res = JSON.parse(xhr.responseText);
-        if (res.record) {
+        if (res.record && Object.keys(res.record).length > 0) {
           appData = res.record;
           saveLocal();
           
@@ -451,6 +456,7 @@ function autoLoadFromCloud() {
           updateSyncStatus('synced', '已同步');
           showToast('首次加载成功');
         } else {
+          // 云端数据为空
           $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 云端暂无数据，将从此设备开始记录</div>';
           updateSyncStatus('idle');
         }
@@ -470,6 +476,11 @@ function autoLoadFromCloud() {
   xhr.onerror = function() {
     $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误，使用本地数据</div>';
     updateSyncStatus('error', '网络错误');
+  };
+  
+  xhr.ontimeout = function() {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 请求超时，使用本地数据</div>';
+    updateSyncStatus('error', '超时');
   };
   
   xhr.send();
