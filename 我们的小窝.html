@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我们的小窝</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #fff5f7; color: #333; min-height: 100vh; }
+
+  /* 顶部横幅 */
+  .header {
+    background: #fff;
+    border-bottom: 1px solid #fce4ec;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-title { font-size: 22px; font-weight: 600; color: #e91e63; letter-spacing: 2px; }
+  .header-date { font-size: 13px; color: #aaa; }
+
+  /* 导航 */
+  .nav {
+    display: flex;
+    gap: 4px;
+    background: #fff;
+    padding: 8px 32px;
+    border-bottom: 1px solid #fce4ec;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    padding: 6px 18px;
+    border-radius: 20px;
+    border: 1px solid #f8bbd0;
+    background: #fff;
+    color: #e91e63;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active { background: #e91e63; color: #fff; border-color: #e91e63; }
+
+  /* 主内容 */
+  .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  /* 页面 */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* 卡片 */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #fce4ec;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title { font-size: 15px; font-weight: 500; color: #e91e63; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* 恋爱计时器 */
+  .love-counter {
+    text-align: center;
+    padding: 32px 0;
+  }
+  .love-counter .days {
+    font-size: 72px;
+    font-weight: 600;
+    color: #e91e63;
+    line-height: 1;
+  }
+  .love-counter .days-label {
+    font-size: 16px;
+    color: #aaa;
+    margin-top: 8px;
+  }
+  .love-counter .detail {
+    font-size: 13px;
+    color: #ccc;
+    margin-top: 16px;
+  }
+  .love-counter .names {
+    font-size: 18px;
+    color: #e91e63;
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+
+  /* 纪念日 */
+  .anniversary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #fce4ec;
+  }
+  .anniversary-item:last-child { border-bottom: none; }
+  .ann-info .ann-name { font-size: 14px; font-weight: 500; color: #333; }
+  .ann-info .ann-date { font-size: 12px; color: #aaa; margin-top: 2px; }
+  .ann-badge {
+    background: #fce4ec;
+    color: #e91e63;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .ann-badge.today { background: #e91e63; color: #fff; }
+
+  /* 日记 */
+  .diary-list .diary-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #fce4ec;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 4px;
+  }
+  .diary-item:hover { background: #fff5f7; }
+  .diary-item .d-date { font-size: 11px; color: #ccc; margin-bottom: 4px; }
+  .diary-item .d-title { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 4px; }
+  .diary-item .d-preview { font-size: 12px; color: #aaa; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .diary-item .d-author {
+    display: inline-block;
+    font-size: 11px;
+    background: #fce4ec;
+    color: #e91e63;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 6px;
+  }
+
+  /* 表单 */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; color: #999; margin-bottom: 6px; display: block; }
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #fce4ec;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fff;
+    color: #333;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #e91e63; }
+  textarea { min-height: 120px; resize: vertical; }
+  .btn-primary {
+    background: #e91e63;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-danger {
+    background: #fff;
+    color: #e91e63;
+    border: 1px solid #f8bbd0;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* 相册 */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .photo-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fce4ec;
+    cursor: pointer;
+    position: relative;
+  }
+  .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #f48fb1;
+    font-size: 12px;
+    text-align: center;
+    gap: 6px;
+  }
+  .photo-placeholder svg { opacity: 0.5; }
+  .photo-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(233,30,99,0.7);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .photo-upload-btn {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 2px dashed #f8bbd0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #f48fb1;
+    font-size: 12px;
+    gap: 6px;
+    transition: border-color 0.2s;
+  }
+  .photo-upload-btn:hover { border-color: #e91e63; color: #e91e63; }
+
+  /* 心愿清单 */
+  .wish-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #fce4ec;
+  }
+  .wish-item:last-child { border-bottom: none; }
+  .wish-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid #f48fb1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .wish-check.done { background: #e91e63; border-color: #e91e63; }
+  .wish-check.done::after { content: ''; width: 8px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg); display: block; margin-top: -2px; }
+  .wish-text { font-size: 14px; color: #333; flex: 1; }
+  .wish-text.done { color: #ccc; text-decoration: line-through; }
+  .wish-category { font-size: 11px; background: #fce4ec; color: #e91e63; padding: 2px 8px; border-radius: 10px; }
+
+  /* 统计卡片 */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .stat-card {
+    background: #fff5f7;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card .s-num { font-size: 28px; font-weight: 600; color: #e91e63; }
+  .stat-card .s-label { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+  /* 设置 */
+  .setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #fce4ec;
+  }
+  .setting-item:last-child { border-bottom: none; }
+  .setting-label { font-size: 14px; color: #333; }
+  .setting-value { font-size: 13px; color: #aaa; }
+
+  /* 弹窗 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-title { font-size: 16px; font-weight: 500; color: #e91e63; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  .empty-tip { text-align: center; color: #ddd; font-size: 13px; padding: 32px 0; }
+
+  /* 心形装饰 */
+  .heart { color: #e91e63; }
+
+  @media (max-width: 600px) {
+    .header { padding: 16px; }
+    .nav { padding: 8px 12px; }
+    .main { padding: 16px 10px; }
+    .love-counter .days { font-size: 56px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title" id="site-title">我们的小窝</div>
+  <div class="header-date" id="today-date"></div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('home')">首页</button>
+  <button class="nav-btn" onclick="showPage('diary')">日记</button>
+  <button class="nav-btn" onclick="showPage('album')">相册</button>
+  <button class="nav-btn" onclick="showPage('anniversary')">纪念日</button>
+  <button class="nav-btn" onclick="showPage('wishlist')">心愿</button>
+  <button class="nav-btn" onclick="showPage('settings')">设置</button>
+</div>
+
+<div class="main">
+
+  <!-- 首页 -->
+  <div class="page active" id="page-home">
+    <div class="card">
+      <div class="love-counter">
+        <div class="names" id="home-names">❤ 你和我 ❤</div>
+        <div class="days" id="love-days">0</div>
+        <div class="days-label">在一起的第 <span id="love-days2">0</span> 天</div>
+        <div class="detail" id="love-detail">从 <span id="start-date-display">未设置</span> 起</div>
+      </div>
+    </div>
+
+    <div class="stat-grid" style="margin-bottom:20px;">
+      <div class="stat-card">
+        <div class="s-num" id="stat-diary">0</div>
+        <div class="s-label">日记篇数</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-num" id="stat-photo">0</div>
+        <div class="s-label">相册照片</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-num" id="stat-wish-done">0</div>
+        <div class="s-label">已实现心愿</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-num" id="stat-ann">0</div>
+        <div class="s-label">纪念日数</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">最近的日记</div>
+      <div id="home-recent-diary"><div class="empty-tip">还没有日记，快去写第一篇吧～</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">即将到来的纪念日</div>
+      <div id="home-upcoming-ann"><div class="empty-tip">还没有纪念日，快去添加吧～</div></div>
+    </div>
+  </div>
+
+  <!-- 日记 -->
+  <div class="page" id="page-diary">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:500;color:#e91e63;">我们的日记</div>
+      <button class="btn-primary" onclick="openModal('diary-modal')">+ 写日记</button>
+    </div>
+    <div class="card">
+      <div class="diary-list" id="diary-list">
+        <div class="empty-tip">还没有日记，快去写第一篇吧～</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 相册 -->
+  <div class="page" id="page-album">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:500;color:#e91e63;">我们的相册</div>
+      <button class="btn-primary" onclick="document.getElementById('photo-input').click()">+ 添加照片</button>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" multiple style="display:none;" onchange="addPhotos(this)">
+    <div class="card">
+      <div class="photo-grid" id="photo-grid">
+        <div class="empty-tip" id="photo-empty" style="grid-column:1/-1;">还没有照片，快去添加吧～</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 纪念日 -->
+  <div class="page" id="page-anniversary">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:500;color:#e91e63;">纪念日</div>
+      <button class="btn-primary" onclick="openModal('ann-modal')">+ 添加</button>
+    </div>
+    <div class="card">
+      <div id="ann-list"><div class="empty-tip">还没有纪念日，快去添加吧～</div></div>
+    </div>
+  </div>
+
+  <!-- 心愿清单 -->
+  <div class="page" id="page-wishlist">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:500;color:#e91e63;">心愿清单</div>
+      <button class="btn-primary" onclick="openModal('wish-modal')">+ 添加心愿</button>
+    </div>
+    <div class="card">
+      <div id="wish-list"><div class="empty-tip">还没有心愿，快去添加吧～</div></div>
+    </div>
+  </div>
+
+  <!-- 设置 -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <div class="card-title">基本设置</div>
+      <div class="form-group">
+        <label class="form-label">网站标题</label>
+        <input type="text" id="set-title" placeholder="例如：我们的小窝" value="我们的小窝">
+      </div>
+      <div class="form-group">
+        <label class="form-label">TA的名字</label>
+        <input type="text" id="set-name1" placeholder="例如：小明">
+      </div>
+      <div class="form-group">
+        <label class="form-label">你的名字</label>
+        <input type="text" id="set-name2" placeholder="例如：小红">
+      </div>
+      <div class="form-group">
+        <label class="form-label">在一起的日期</label>
+        <input type="date" id="set-start-date">
+      </div>
+      <button class="btn-primary" onclick="saveSettings()">保存设置</button>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">数据管理</div>
+      <div class="setting-item">
+        <span class="setting-label">导出数据备份</span>
+        <button class="btn-danger" onclick="exportData()">导出</button>
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">导入数据</span>
+        <button class="btn-danger" onclick="document.getElementById('import-input').click()">导入</button>
+        <input type="file" id="import-input" accept=".json" style="display:none;" onchange="importData(this)">
+      </div>
+      <div class="setting-item">
+        <span class="setting-label" style="color:#e91e63;">清除所有数据</span>
+        <button class="btn-danger" onclick="clearAll()" style="color:#e91e63;border-color:#e91e63;">清除</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 日记弹窗 -->
+<div class="modal-overlay" id="diary-modal">
+  <div class="modal">
+    <div class="modal-title">写日记</div>
+    <div class="form-group">
+      <label class="form-label">标题</label>
+      <input type="text" id="diary-title-input" placeholder="今天发生了什么～">
+    </div>
+    <div class="form-group">
+      <label class="form-label">作者</label>
+      <select id="diary-author-input">
+        <option value="TA">TA写的</option>
+        <option value="我">我写的</option>
+        <option value="一起">我们一起写的</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容</label>
+      <textarea id="diary-content-input" placeholder="记录今天的点点滴滴..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input type="date" id="diary-date-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label">心情</label>
+      <select id="diary-mood-input">
+        <option value="开心">开心</option>
+        <option value="甜蜜">甜蜜</option>
+        <option value="感动">感动</option>
+        <option value="想念">想念</option>
+        <option value="平静">平静</option>
+        <option value="难过">难过</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="closeModal('diary-modal')">取消</button>
+      <button class="btn-primary" onclick="saveDiary()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 纪念日弹窗 -->
+<div class="modal-overlay" id="ann-modal">
+  <div class="modal">
+    <div class="modal-title">添加纪念日</div>
+    <div class="form-group">
+      <label class="form-label">纪念日名称</label>
+      <input type="text" id="ann-name-input" placeholder="例如：第一次见面">
+    </div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input type="date" id="ann-date-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input type="text" id="ann-note-input" placeholder="关于这个特别的日子...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="closeModal('ann-modal')">取消</button>
+      <button class="btn-primary" onclick="saveAnniversary()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 心愿弹窗 -->
+<div class="modal-overlay" id="wish-modal">
+  <div class="modal">
+    <div class="modal-title">添加心愿</div>
+    <div class="form-group">
+      <label class="form-label">心愿内容</label>
+      <input type="text" id="wish-text-input" placeholder="例如：一起去看海">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类</label>
+      <select id="wish-cat-input">
+        <option value="旅行">旅行</option>
+        <option value="美食">美食</option>
+        <option value="生活">生活</option>
+        <option value="电影">电影</option>
+        <option value="礼物">礼物</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="closeModal('wish-modal')">取消</button>
+      <button class="btn-primary" onclick="saveWish()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日记详情弹窗 -->
+<div class="modal-overlay" id="diary-detail-modal">
+  <div class="modal">
+    <div id="diary-detail-content"></div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="diary-delete-btn">删除</button>
+      <button class="btn-primary" onclick="closeModal('diary-detail-modal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- 数据存储 ----
+let data = {
+  settings: { title: '我们的小窝', name1: '', name2: '', startDate: '' },
+  diaries: [],
+  photos: [],
+  anniversaries: [],
+  wishlist: []
+};
+
+function save() {
+  localStorage.setItem('couple_data', JSON.stringify(data));
+}
+function load() {
+  const s = localStorage.getItem('couple_data');
+  if (s) {
+    try { data = JSON.parse(s); } catch(e) {}
+  }
+}
+
+// ---- 初始化 ----
+load();
+applySettings();
+renderAll();
+setTodayDate();
+
+function setTodayDate() {
+  const now = new Date();
+  const s = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+  document.getElementById('today-date').textContent = s;
+  // 设置今天为日记默认日期
+  const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+  document.getElementById('diary-date-input').value = y+'-'+m+'-'+d;
+}
+
+// ---- 页面切换 ----
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'home') renderHome();
+}
+
+// ---- 弹窗 ----
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ---- 恋爱计时 ----
+function calcLoveDays(startDateStr) {
+  if (!startDateStr) return 0;
+  const start = new Date(startDateStr);
+  const now = new Date();
+  start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((now - start) / 86400000) + 1);
+}
+
+// ---- 渲染首页 ----
+function renderHome() {
+  const days = calcLoveDays(data.settings.startDate);
+  document.getElementById('love-days').textContent = days;
+  document.getElementById('love-days2').textContent = days;
+  document.getElementById('start-date-display').textContent = data.settings.startDate || '未设置（请前往设置）';
+
+  const n1 = data.settings.name1 || 'TA';
+  const n2 = data.settings.name2 || '我';
+  document.getElementById('home-names').textContent = '❤ ' + n1 + ' & ' + n2 + ' ❤';
+
+  // 统计
+  document.getElementById('stat-diary').textContent = data.diaries.length;
+  document.getElementById('stat-photo').textContent = data.photos.length;
+  document.getElementById('stat-wish-done').textContent = data.wishlist.filter(w=>w.done).length;
+  document.getElementById('stat-ann').textContent = data.anniversaries.length;
+
+  // 最近日记
+  const recentDiaries = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const rdEl = document.getElementById('home-recent-diary');
+  if (recentDiaries.length === 0) {
+    rdEl.innerHTML = '<div class="empty-tip">还没有日记，快去写第一篇吧～</div>';
+  } else {
+    rdEl.innerHTML = recentDiaries.map(d => `
+      <div class="diary-item" onclick="showDiaryDetail('${d.id}')">
+        <div class="d-date">${d.date} · ${d.mood}</div>
+        <div class="d-title">${d.title}</div>
+        <div class="d-preview">${d.content}</div>
+        <span class="d-author">${d.author}</span>
+      </div>
+    `).join('');
+  }
+
+  // 即将到来的纪念日
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const anns = data.anniversaries.map(a => {
+    const d = new Date(a.date);
+    const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+    if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
+    const diff = Math.floor((thisYear - today) / 86400000);
+    return { ...a, diff };
+  }).sort((a,b) => a.diff - b.diff).slice(0,5);
+
+  const upEl = document.getElementById('home-upcoming-ann');
+  if (anns.length === 0) {
+    upEl.innerHTML = '<div class="empty-tip">还没有纪念日，快去添加吧～</div>';
+  } else {
+    upEl.innerHTML = anns.map(a => `
+      <div class="anniversary-item">
+        <div class="ann-info">
+          <div class="ann-name">${a.name}</div>
+          <div class="ann-date">${a.date}${a.note ? ' · ' + a.note : ''}</div>
+        </div>
+        <span class="ann-badge ${a.diff===0?'today':''}">${a.diff===0?'就是今天！':'还有'+a.diff+'天'}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// ---- 日记 ----
+function saveDiary() {
+  const title = document.getElementById('diary-title-input').value.trim();
+  const content = document.getElementById('diary-content-input').value.trim();
+  const date = document.getElementById('diary-date-input').value;
+  const author = document.getElementById('diary-author-input').value;
+  const mood = document.getElementById('diary-mood-input').value;
+  if (!title || !content) { alert('请填写标题和内容～'); return; }
+  data.diaries.push({ id: Date.now().toString(), title, content, date, author, mood });
+  save();
+  closeModal('diary-modal');
+  document.getElementById('diary-title-input').value = '';
+  document.getElementById('diary-content-input').value = '';
+  renderDiaryList();
+  renderHome();
+}
+
+function renderDiaryList() {
+  const el = document.getElementById('diary-list');
+  const sorted = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date));
+  if (sorted.length === 0) {
+    el.innerHTML = '<div class="empty-tip">还没有日记，快去写第一篇吧～</div>';
+    return;
+  }
+  el.innerHTML = sorted.map(d => `
+    <div class="diary-item" onclick="showDiaryDetail('${d.id}')">
+      <div class="d-date">${d.date} · ${d.mood}</div>
+      <div class="d-title">${d.title}</div>
+      <div class="d-preview">${d.content}</div>
+      <span class="d-author">${d.author}</span>
+    </div>
+  `).join('');
+}
+
+function showDiaryDetail(id) {
+  const d = data.diaries.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('diary-detail-content').innerHTML = `
+    <div style="color:#aaa;font-size:12px;margin-bottom:8px;">${d.date} · ${d.mood} · ${d.author}</div>
+    <div style="font-size:17px;font-weight:500;color:#333;margin-bottom:16px;">${d.title}</div>
+    <div style="font-size:14px;color:#555;line-height:1.8;white-space:pre-wrap;">${d.content}</div>
+  `;
+  document.getElementById('diary-delete-btn').onclick = () => {
+    if (confirm('确定要删除这篇日记吗？')) {
+      data.diaries = data.diaries.filter(x => x.id !== id);
+      save();
+      closeModal('diary-detail-modal');
+      renderDiaryList();
+      renderHome();
+    }
+  };
+  openModal('diary-detail-modal');
+}
+
+// ---- 相册 ----
+function addPhotos(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      data.photos.push({ id: Date.now().toString() + Math.random(), src: e.target.result, name: file.name, date: new Date().toISOString().slice(0,10) });
+      save();
+      renderPhotoGrid();
+      renderHome();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderPhotoGrid() {
+  const el = document.getElementById('photo-grid');
+  if (data.photos.length === 0) {
+    el.innerHTML = '<div class="empty-tip" style="grid-column:1/-1;">还没有照片，快去添加吧～</div>';
+    return;
+  }
+  el.innerHTML = data.photos.map(p => `
+    <div class="photo-item" onclick="deletePhoto('${p.id}')">
+      <img src="${p.src}" alt="${p.name}" loading="lazy">
+      <div class="photo-caption">${p.date}</div>
+    </div>
+  `).join('');
+}
+
+function deletePhoto(id) {
+  if (confirm('删除这张照片？')) {
+    data.photos = data.photos.filter(p => p.id !== id);
+    save();
+    renderPhotoGrid();
+    renderHome();
+  }
+}
+
+// ---- 纪念日 ----
+function saveAnniversary() {
+  const name = document.getElementById('ann-name-input').value.trim();
+  const date = document.getElementById('ann-date-input').value;
+  const note = document.getElementById('ann-note-input').value.trim();
+  if (!name || !date) { alert('请填写名称和日期～'); return; }
+  data.anniversaries.push({ id: Date.now().toString(), name, date, note });
+  save();
+  closeModal('ann-modal');
+  document.getElementById('ann-name-input').value = '';
+  document.getElementById('ann-note-input').value = '';
+  renderAnniversaryList();
+  renderHome();
+}
+
+function renderAnniversaryList() {
+  const el = document.getElementById('ann-list');
+  if (data.anniversaries.length === 0) {
+    el.innerHTML = '<div class="empty-tip">还没有纪念日，快去添加吧～</div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  el.innerHTML = data.anniversaries.map(a => {
+    const d = new Date(a.date);
+    const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+    if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
+    const diff = Math.floor((thisYear - today) / 86400000);
+    return `
+      <div class="anniversary-item">
+        <div class="ann-info">
+          <div class="ann-name">${a.name}</div>
+          <div class="ann-date">${a.date}${a.note ? ' · ' + a.note : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="ann-badge ${diff===0?'today':''}">${diff===0?'就是今天！':'还有'+diff+'天'}</span>
+          <button class="btn-danger" onclick="deleteAnn('${a.id}');event.stopPropagation()">删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteAnn(id) {
+  if (confirm('确定删除这个纪念日？')) {
+    data.anniversaries = data.anniversaries.filter(a => a.id !== id);
+    save();
+    renderAnniversaryList();
+    renderHome();
+  }
+}
+
+// ---- 心愿清单 ----
+function saveWish() {
+  const text = document.getElementById('wish-text-input').value.trim();
+  const cat = document.getElementById('wish-cat-input').value;
+  if (!text) { alert('请填写心愿内容～'); return; }
+  data.wishlist.push({ id: Date.now().toString(), text, cat, done: false });
+  save();
+  closeModal('wish-modal');
+  document.getElementById('wish-text-input').value = '';
+  renderWishList();
+  renderHome();
+}
+
+function toggleWish(id) {
+  const w = data.wishlist.find(x => x.id === id);
+  if (w) { w.done = !w.done; save(); renderWishList(); renderHome(); }
+}
+
+function deleteWish(id) {
+  if (confirm('删除这个心愿？')) {
+    data.wishlist = data.wishlist.filter(w => w.id !== id);
+    save();
+    renderWishList();
+    renderHome();
+  }
+}
+
+function renderWishList() {
+  const el = document.getElementById('wish-list');
+  if (data.wishlist.length === 0) {
+    el.innerHTML = '<div class="empty-tip">还没有心愿，快去添加吧～</div>';
+    return;
+  }
+  const todo = data.wishlist.filter(w => !w.done);
+  const done = data.wishlist.filter(w => w.done);
+  const renderItem = w => `
+    <div class="wish-item">
+      <div class="wish-check ${w.done?'done':''}" onclick="toggleWish('${w.id}')"></div>
+      <span class="wish-text ${w.done?'done':''}">${w.text}</span>
+      <span class="wish-category">${w.cat}</span>
+      <button class="btn-danger" onclick="deleteWish('${w.id}')" style="margin-left:8px;padding:4px 10px;">删除</button>
+    </div>
+  `;
+  let html = '';
+  if (todo.length > 0) html += todo.map(renderItem).join('');
+  if (done.length > 0) {
+    html += `<div style="font-size:12px;color:#ccc;margin:12px 0 8px;">已实现 (${done.length})</div>`;
+    html += done.map(renderItem).join('');
+  }
+  el.innerHTML = html;
+}
+
+// ---- 设置 ----
+function applySettings() {
+  document.getElementById('site-title').textContent = data.settings.title || '我们的小窝';
+  document.title = data.settings.title || '我们的小窝';
+  if (data.settings.name1) document.getElementById('set-name1').value = data.settings.name1;
+  if (data.settings.name2) document.getElementById('set-name2').value = data.settings.name2;
+  if (data.settings.startDate) document.getElementById('set-start-date').value = data.settings.startDate;
+  if (data.settings.title) document.getElementById('set-title').value = data.settings.title;
+}
+
+function saveSettings() {
+  data.settings.title = document.getElementById('set-title').value || '我们的小窝';
+  data.settings.name1 = document.getElementById('set-name1').value;
+  data.settings.name2 = document.getElementById('set-name2').value;
+  data.settings.startDate = document.getElementById('set-start-date').value;
+  save();
+  applySettings();
+  renderHome();
+  alert('设置已保存～');
+}
+
+// ---- 数据导出/导入 ----
+function exportData() {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '我们的小窝_备份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (confirm('确定要导入数据吗？这将覆盖当前所有数据。')) {
+        data = imported;
+        save();
+        applySettings();
+        renderAll();
+        alert('数据导入成功！');
+      }
+    } catch(err) { alert('文件格式错误，请选择正确的备份文件。'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function clearAll() {
+  if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+    if (confirm('再次确认：清除所有数据？')) {
+      localStorage.removeItem('couple_data');
+      location.reload();
+    }
+  }
+}
+
+// ---- 渲染全部 ----
+function renderAll() {
+  renderHome();
+  renderDiaryList();
+  renderPhotoGrid();
+  renderAnniversaryList();
+  renderWishList();
+}
+</script>
+</body>
+</html>
