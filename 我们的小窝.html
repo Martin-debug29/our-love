@@ -352,62 +352,60 @@ var diaryPhotos = []; // 临时日记照片
   // 渲染
   renderAll();
   
-  // 自动检查云端数据并同步
-  checkAndSyncCloud();
+  // 自动从云端加载最新数据（如果存在）
+  autoLoadFromCloud();
 })();
 
-// 自动检查云端数据并同步
-function checkAndSyncCloud() {
+// 自动从云端加载
+function autoLoadFromCloud() {
+  if (!cloudCfg.apiKey || !cloudCfg.binId) {
+    updateSyncStatus('idle');
+    return;
+  }
+  
   updateSyncStatus('syncing', '同步中...');
   
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest', true);
   xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 10000; // 10秒超时
   
   xhr.onload = function() {
     if (xhr.status === 200) {
       try {
         var res = JSON.parse(xhr.responseText);
         if (res.record) {
-          var cloudData = res.record;
-          var cloudTime = cloudData._syncTime || 0;
-          var localTime = appData._syncTime || 0;
+          // 云端有数据，加载到本地
+          appData = res.record;
+          saveLocal();
           
-          // 如果云端数据更新，则使用云端数据
-          if (cloudTime > localTime) {
-            appData = cloudData;
-            saveLocal();
-            
-            // 更新表单
-            $('set-title').value = appData.settings.title || '我们的小窝';
-            $('set-name1').value = appData.settings.name1 || '';
-            $('set-name2').value = appData.settings.name2 || '';
-            $('set-start-date').value = appData.settings.startDate || '';
-            
-            renderAll();
-            updateSyncStatus('synced', '已同步');
-            showToast('已同步云端最新数据');
-          } else {
-            // 本地数据更新或相同，同步到云端
-            cloudSync(true);
-            updateSyncStatus('synced', '已同步');
-          }
-        } else {
-          // 云端为空，同步本地到云端
-          cloudSync(true);
+          // 更新表单
+          $('set-title').value = appData.settings.title || '我们的小窝';
+          $('set-name1').value = appData.settings.name1 || '';
+          $('set-name2').value = appData.settings.name2 || '';
+          $('set-start-date').value = appData.settings.startDate || '';
+          
+          renderAll();
           updateSyncStatus('synced', '已同步');
+          showToast('已同步云端数据');
+        } else {
+          // 云端为空，上传本地数据
+          cloudSyncSilent();
         }
       } catch(e) {
-        cloudSync(true);
-        updateSyncStatus('synced', '已同步');
+        // 解析失败，使用本地数据
+        updateSyncStatus('idle');
       }
     } else if (xhr.status === 404) {
-      // 云端没有数据，同步本地到云端
-      cloudSync(true);
-      updateSyncStatus('synced', '已同步');
+      // Bin不存在，上传本地数据
+      cloudSyncSilent();
     } else {
       updateSyncStatus('idle');
     }
+  };
+  
+  xhr.ontimeout = function() {
+    updateSyncStatus('idle');
   };
   
   xhr.onerror = function() {
@@ -415,6 +413,37 @@ function checkAndSyncCloud() {
   };
   
   xhr.send();
+}
+
+// 静默同步到云端
+function cloudSyncSilent() {
+  if (!cloudCfg.apiKey || !cloudCfg.binId) return;
+  
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 10000;
+  
+  appData._syncTime = Date.now();
+  
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      updateSyncStatus('synced', '已同步');
+    } else {
+      updateSyncStatus('idle');
+    }
+  };
+  
+  xhr.ontimeout = function() {
+    updateSyncStatus('idle');
+  };
+  
+  xhr.onerror = function() {
+    updateSyncStatus('idle');
+  };
+  
+  xhr.send(JSON.stringify(appData));
 }
 
 function $(id) { return document.getElementById(id); }
@@ -426,18 +455,20 @@ function saveLocal() {
     localStorage.setItem('couple_cloud', JSON.stringify(cloudCfg));
     return true;
   } catch(e) {
-    showToast('保存失败: ' + e.message);
+    console.error('保存失败:', e);
+    showToast('保存失败: 存储空间可能不足');
     return false;
   }
 }
 
 function saveAndSync() {
-  if (!saveLocal()) return;
+  if (!saveLocal()) return false;
   
   // 自动同步（静默）
   if (cloudCfg.autoSync && cloudCfg.apiKey && cloudCfg.binId) {
-    cloudSync(true);
+    cloudSyncSilent();
   }
+  return true;
 }
 
 // ============ Toast ============
@@ -475,7 +506,20 @@ function switchPage(name) {
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
   $('page-' + name).classList.add('active');
-  event.target.classList.add('active');
+  
+  // 激活对应的导航按钮
+  var btns = document.querySelectorAll('.nav-btn');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.indexOf(name === 'home' ? '首页' : 
+                                      name === 'diary' ? '日记' : 
+                                      name === 'album' ? '相册' : 
+                                      name === 'anniversary' ? '纪念日' : 
+                                      name === 'wishlist' ? '心愿' : 
+                                      name === 'settings' ? '设置' : '') !== -1) {
+      btns[i].classList.add('active');
+      break;
+    }
+  }
   
   if (name === 'home') renderHome();
   else if (name === 'diary') renderDiaryList();
@@ -603,11 +647,12 @@ function submitDiary() {
   
   diaryPhotos = [];
   
-  saveAndSync();
-  closeModals();
-  renderDiaryList();
-  renderHome();
-  showToast('日记已发布');
+  if (saveAndSync() !== false) {
+    closeModals();
+    renderDiaryList();
+    renderHome();
+    showToast('日记已发布 ✓');
+  }
 }
 
 function renderDiaryList() {
@@ -672,21 +717,26 @@ function handleDiaryPhotos(input) {
   if (!files.length) return;
   if (diaryPhotos.length >= 9) {
     showToast('最多9张照片');
+    input.value = '';
     return;
   }
   
   var remain = 9 - diaryPhotos.length;
   files = files.slice(0, remain);
-  showToast('处理中...');
+  if (files.length < remain) {
+    showToast('处理中 ' + files.length + ' 张照片...');
+  }
   
-  var done = 0;
+  var processed = 0;
   files.forEach(function(file) {
     compressImg(file, function(src) {
-      diaryPhotos.push(src);
-      done++;
-      if (done === files.length) {
+      if (src) {
+        diaryPhotos.push(src);
+      }
+      processed++;
+      if (processed === files.length) {
         renderDiaryPhotoPreview();
-        showToast('已添加' + files.length + '张照片');
+        showToast('已添加照片');
       }
     });
   });
@@ -710,21 +760,33 @@ function removeDiaryPhoto(index) {
 function handlePhotoUpload(input) {
   var files = Array.prototype.slice.call(input.files);
   if (!files.length) return;
-  showToast('处理中...');
   
-  var done = 0;
+  showToast('正在处理 ' + files.length + ' 张照片...');
+  
+  var processed = 0;
+  var hasError = false;
+  
   files.forEach(function(file) {
     compressImg(file, function(src) {
-      appData.photos.push({
-        id: Date.now().toString() + done,
-        src: src,
-        date: new Date().toISOString().slice(0, 10)
-      });
-      done++;
-      if (done === files.length) {
-        saveAndSync();
-        renderAlbumList();
-        showToast('已添加' + files.length + '张照片');
+      if (src) {
+        appData.photos.push({
+          id: Date.now().toString() + '_' + processed,
+          src: src,
+          date: new Date().toISOString().slice(0, 10)
+        });
+      } else {
+        hasError = true;
+      }
+      processed++;
+      
+      if (processed === files.length) {
+        if (hasError) {
+          showToast('部分照片处理失败，已添加成功的部分');
+        }
+        if (saveAndSync() !== false) {
+          renderAlbumList();
+          showToast('已添加照片');
+        }
       }
     });
   });
@@ -762,11 +824,12 @@ function submitAnn() {
   
   appData.anniversaries.push({ id: Date.now().toString(), name: name, date: date, note: note });
   
-  saveAndSync();
-  closeModals();
-  renderAnnList();
-  renderHome();
-  showToast('纪念日已添加');
+  if (saveAndSync() !== false) {
+    closeModals();
+    renderAnnList();
+    renderHome();
+    showToast('纪念日已添加 ✓');
+  }
 }
 
 function renderAnnList() {
@@ -815,10 +878,11 @@ function submitWish() {
   
   appData.wishlist.push({ id: Date.now().toString(), text: text, cat: cat, done: false });
   
-  saveAndSync();
-  closeModals();
-  renderWishList();
-  showToast('心愿已添加');
+  if (saveAndSync() !== false) {
+    closeModals();
+    renderWishList();
+    showToast('心愿已添加 ✓');
+  }
 }
 
 function renderWishList() {
@@ -928,6 +992,9 @@ function cloudSync(silent) {
   xhr.open('PUT', 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.setRequestHeader('X-Master-Key', cloudCfg.apiKey);
+  xhr.timeout = 15000;
+  
+  appData._syncTime = Date.now();
   
   xhr.onload = function() {
     if (xhr.status === 200) {
@@ -936,11 +1003,9 @@ function cloudSync(silent) {
         if (res.metadata && res.metadata.id && res.metadata.id !== cloudCfg.binId) {
           cloudCfg.binId = res.metadata.id;
           $('cloud-bin').value = cloudCfg.binId;
+          saveLocal();
         }
       } catch(e) {}
-      
-      // 添加同步时间戳
-      appData._syncTime = Date.now();
       
       if (!silent) {
         $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 同步成功 ' + new Date().toLocaleTimeString() + '</div>';
@@ -957,6 +1022,14 @@ function cloudSync(silent) {
     }
   };
   
+  xhr.ontimeout = function() {
+    if (!silent) {
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 请求超时</div>';
+    }
+    updateSyncStatus('error', '超时');
+    if (!silent) showToast('同步超时，请重试');
+  };
+  
   xhr.onerror = function() {
     if (!silent) {
       $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误</div>';
@@ -969,8 +1042,8 @@ function cloudSync(silent) {
 }
 
 function doCloudSync() {
-  cloudCfg.apiKey = $('cloud-key').value;
-  cloudCfg.binId = $('cloud-bin').value;
+  cloudCfg.apiKey = $('cloud-key').value.trim();
+  cloudCfg.binId = $('cloud-bin').value.trim();
   saveLocal();
   cloudSync(false);
 }
@@ -994,6 +1067,7 @@ function doCloudLoad() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://api.jsonbin.io/v3/b/' + b + '/latest', true);
   xhr.setRequestHeader('X-Master-Key', k);
+  xhr.timeout = 15000;
   
   xhr.onload = function() {
     if (xhr.status === 200) {
@@ -1013,19 +1087,34 @@ function doCloudLoad() {
           $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 加载成功</div>';
           updateSyncStatus('synced', '已同步');
           showToast('加载成功');
+        } else {
+          $('cloud-msg').innerHTML = '<div class="msg msg-error">云端数据为空</div>';
+          updateSyncStatus('idle');
         }
       } catch(e) {
         $('cloud-msg').innerHTML = '<div class="msg msg-error">数据解析失败</div>';
+        updateSyncStatus('error', '解析失败');
       }
+    } else if (xhr.status === 404) {
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ Bin不存在，请检查Bin ID</div>';
+      updateSyncStatus('error', '不存在');
+    } else if (xhr.status === 403) {
+      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ API Key权限不足</div>';
+      updateSyncStatus('error', '无权限');
     } else {
       $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 加载失败: ' + xhr.status + '</div>';
-      updateSyncStatus('error');
+      updateSyncStatus('error', '失败');
     }
   };
   
+  xhr.ontimeout = function() {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 请求超时</div>';
+    updateSyncStatus('error', '超时');
+  };
+  
   xhr.onerror = function() {
-    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误</div>';
-    updateSyncStatus('error');
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ 网络错误，请检查网络连接</div>';
+    updateSyncStatus('error', '网络错误');
   };
   
   xhr.send();
@@ -1088,28 +1177,57 @@ function renderAll() {
 
 // ============ 图片压缩 ============
 function compressImg(file, callback) {
+  // 检查文件类型
+  if (!file || !file.type.match(/^image\/(jpeg|png|gif|webp)$/)) {
+    showToast('不支持的文件格式');
+    callback(null);
+    return;
+  }
+  
+  // 检查文件大小（限制10MB）
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('图片太大，请选择10MB以下的图片');
+    callback(null);
+    return;
+  }
+  
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
-      var canvas = document.createElement('canvas');
-      var w = img.width, h = img.height;
-      
-      // 最大边600px（更省空间）
-      if (w > 600 || h > 600) {
-        if (w > h) { h = h * 600 / w; w = 600; }
-        else { w = w * 600 / h; h = 600; }
+      try {
+        var canvas = document.createElement('canvas');
+        var w = img.width, h = img.height;
+        
+        // 最大边600px（更省空间）
+        if (w > 600 || h > 600) {
+          if (w > h) { h = Math.round(h * 600 / w); w = 600; }
+          else { w = Math.round(w * 600 / h); h = 600; }
+        }
+        
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        
+        // 40%质量
+        var src = canvas.toDataURL('image/jpeg', 0.4);
+        callback(src);
+      } catch(err) {
+        console.error('图片压缩失败:', err);
+        showToast('图片处理失败');
+        callback(null);
       }
-      
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      
-      // 40%质量
-      var src = canvas.toDataURL('image/jpeg', 0.4);
-      callback(src);
+    };
+    img.onerror = function() {
+      showToast('图片加载失败');
+      callback(null);
     };
     img.src = e.target.result;
+  };
+  reader.onerror = function() {
+    showToast('文件读取失败');
+    callback(null);
   };
   reader.readAsDataURL(file);
 }
