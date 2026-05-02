@@ -8,260 +8,103 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #fff5f7; color: #333; min-height: 100vh; }
 
-  /* 顶部横幅 */
   .header {
-    background: #fff;
-    border-bottom: 1px solid #fce4ec;
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background: #fff; border-bottom: 1px solid #fce4ec; padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
   }
   .header-title { font-size: 22px; font-weight: 600; color: #e91e63; letter-spacing: 2px; }
   .header-date { font-size: 13px; color: #aaa; }
   .sync-status { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
-  .sync-status.synced { background: #e8f5e9; color: #4caf50; }
-  .sync-status.syncing { background: #fff3e0; color: #ff9800; }
-  .sync-status.error { background: #ffebee; color: #f44336; }
-  .sync-status.offline { background: #f5f5f5; color: #999; }
 
-  /* 导航 */
   .nav {
-    display: flex;
-    gap: 4px;
-    background: #fff;
-    padding: 8px 32px;
-    border-bottom: 1px solid #fce4ec;
-    flex-wrap: wrap;
+    display: flex; gap: 4px; background: #fff; padding: 8px 32px;
+    border-bottom: 1px solid #fce4ec; flex-wrap: wrap;
   }
   .nav-btn {
-    padding: 6px 18px;
-    border-radius: 20px;
-    border: 1px solid #f8bbd0;
-    background: #fff;
-    color: #e91e63;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 6px 18px; border-radius: 20px; border: 1px solid #f8bbd0;
+    background: #fff; color: #e91e63; font-size: 13px; cursor: pointer; transition: all 0.2s;
   }
   .nav-btn:hover, .nav-btn.active { background: #e91e63; color: #fff; border-color: #e91e63; }
 
-  /* 主内容 */
   .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-
-  /* 页面 */
   .page { display: none; }
   .page.active { display: block; }
 
-  /* 卡片 */
   .card {
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid #fce4ec;
-    padding: 24px;
-    margin-bottom: 20px;
+    background: #fff; border-radius: 16px; border: 1px solid #fce4ec;
+    padding: 24px; margin-bottom: 20px;
   }
   .card-title { font-size: 15px; font-weight: 500; color: #e91e63; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
-  /* 恋爱计时器 */
-  .love-counter {
-    text-align: center;
-    padding: 32px 0;
-  }
-  .love-counter .days
-    font-size: 72px;
-    font-weight: 600;
-    color: #e91e63;
-    line-height: 1;
-  }
-  .love-counter .days-label {
-    font-size: 16px;
-    color: #aaa;
-    margin-top: 8px;
-  }
-  .love-counter .detail {
-    font-size: 13px;
-    color: #ccc;
-    margin-top: 16px;
-  }
-  .love-counter .names {
-    font-size: 18px;
-    color: #e91e63;
-    font-weight: 500;
-    margin-bottom: 20px;
-  }
+  .love-counter { text-align: center; padding: 32px 0; }
+  .love-counter .days { font-size: 72px; font-weight: 600; color: #e91e63; line-height: 1; }
+  .love-counter .days-label { font-size: 16px; color: #aaa; margin-top: 8px; }
+  .love-counter .detail { font-size: 13px; color: #ccc; margin-top: 16px; }
+  .love-counter .names { font-size: 18px; color: #e91e63; font-weight: 500; margin-bottom: 20px; }
 
-  /* 纪念日 */
   .anniversary-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid #fce4ec;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid #fce4ec;
   }
   .anniversary-item:last-child { border-bottom: none; }
   .ann-info .ann-name { font-size: 14px; font-weight: 500; color: #333; }
   .ann-info .ann-date { font-size: 12px; color: #aaa; margin-top: 2px; }
-  .ann-badge {
-    background: #fce4ec;
-    color: #e91e63;
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    white-space: nowrap;
-  }
+  .ann-badge { background: #fce4ec; color: #e91e63; font-size: 12px; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
   .ann-badge.today { background: #e91e63; color: #fff; }
 
-  /* 日记 */
   .diary-list .diary-item {
-    padding: 16px 0;
-    border-bottom: 1px solid #fce4ec;
-    cursor: pointer;
-    transition: background 0.15s;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 4px;
+    padding: 16px 0; border-bottom: 1px solid #fce4ec; cursor: pointer;
+    transition: background 0.15s; border-radius: 8px; padding: 12px; margin-bottom: 4px;
   }
   .diary-item:hover { background: #fff5f7; }
   .diary-item .d-date { font-size: 11px; color: #ccc; margin-bottom: 4px; }
   .diary-item .d-title { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 4px; }
   .diary-item .d-preview { font-size: 12px; color: #aaa; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .diary-item .d-author {
-    display: inline-block;
-    font-size: 11px;
-    background: #fce4ec;
-    color: #e91e63;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-top: 6px;
-  }
+  .diary-item .d-author { display: inline-block; font-size: 11px; background: #fce4ec; color: #e91e63; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
 
-  /* 表单 */
   .form-group { margin-bottom: 16px; }
   .form-label { font-size: 13px; color: #999; margin-bottom: 6px; display: block; }
   input[type="text"], input[type="date"], select, textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #fce4ec;
-    border-radius: 10px;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s;
-    background: #fff;
-    color: #333;
+    width: 100%; padding: 10px 14px; border: 1px solid #fce4ec; border-radius: 10px;
+    font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s;
+    background: #fff; color: #333;
   }
   input:focus, select:focus, textarea:focus { border-color: #e91e63; }
   textarea { min-height: 120px; resize: vertical; }
   .btn-primary {
-    background: #e91e63;
-    color: #fff;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    font-family: inherit;
+    background: #e91e63; color: #fff; border: none; padding: 10px 24px;
+    border-radius: 20px; font-size: 14px; cursor: pointer; transition: opacity 0.2s; font-family: inherit;
   }
   .btn-primary:hover { opacity: 0.88; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-danger {
-    background: #fff;
-    color: #e91e63;
-    border: 1px solid #f8bbd0;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .btn-secondary {
-    background: #fce4ec;
-    color: #e91e63;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    font-family: inherit;
+    background: #fff; color: #e91e63; border: 1px solid #f8bbd0;
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-family: inherit;
   }
 
-  /* 相册 */
-  .photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-  }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
   .photo-item {
-    aspect-ratio: 1;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #fce4ec;
-    cursor: pointer;
-    position: relative;
+    aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: #fce4ec;
+    cursor: pointer; position: relative;
   }
   .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .photo-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #f48fb1;
-    font-size: 12px;
-    text-align: center;
-    gap: 6px;
-  }
-  .photo-placeholder svg { opacity: 0.5; }
   .photo-caption {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: rgba(233,30,99,0.7);
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 8px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    position: absolute; bottom: 0; left: 0; right: 0; background: rgba(233,30,99,0.7);
+    color: #fff; font-size: 11px; padding: 4px 8px; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .photo-upload-btn {
-    aspect-ratio: 1;
-    border-radius: 12px;
-    border: 2px dashed #f8bbd0;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #f48fb1;
-    font-size: 12px;
-    gap: 6px;
-    transition: border-color 0.2s;
+    aspect-ratio: 1; border-radius: 12px; border: 2px dashed #f8bbd0; background: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; color: #f48fb1; font-size: 12px; gap: 6px; transition: border-color 0.2s;
   }
   .photo-upload-btn:hover { border-color: #e91e63; color: #e91e63; }
 
-  /* 心愿清单 */
-  .wish-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid #fce4ec;
-  }
+  .wish-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #fce4ec; }
   .wish-item:last-child { border-bottom: none; }
   .wish-check {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    border: 2px solid #f48fb1;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid #f48fb1;
+    cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
   }
   .wish-check.done { background: #e91e63; border-color: #e91e63; }
   .wish-check.done::after { content: ''; width: 8px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg); display: block; margin-top: -2px; }
@@ -269,111 +112,47 @@
   .wish-text.done { color: #ccc; text-decoration: line-through; }
   .wish-category { font-size: 11px; background: #fce4ec; color: #e91e63; padding: 2px 8px; border-radius: 10px; }
 
-  /* 统计卡片 */
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .stat-card {
-    background: #fff5f7;
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-  }
+  .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat-card { background: #fff5f7; border-radius: 12px; padding: 16px; text-align: center; }
   .stat-card .s-num { font-size: 28px; font-weight: 600; color: #e91e63; }
   .stat-card .s-label { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-  /* 设置 */
   .setting-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 0;
-    border-bottom: 1px solid #fce4ec;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid #fce4ec;
   }
   .setting-item:last-child { border-bottom: none; }
   .setting-label { font-size: 14px; color: #333; }
-  .setting-value { font-size: 13px; color: #aaa; }
 
-  /* 弹窗 */
   .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.3);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3); z-index: 1000; align-items: center; justify-content: center;
   }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff;
-    border-radius: 20px;
-    padding: 28px;
-    width: 90%;
-    max-width: 480px;
-    max-height: 85vh;
-    overflow-y: auto;
-  }
+  .modal { background: #fff; border-radius: 20px; padding: 28px; width: 90%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
   .modal-title { font-size: 16px; font-weight: 500; color: #e91e63; margin-bottom: 20px; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
   .empty-tip { text-align: center; color: #ddd; font-size: 13px; padding: 32px 0; }
-
-  /* 心形装饰 */
   .heart { color: #e91e63; }
 
-  /* 提示框 */
   .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.8);
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 20px;
-    font-size: 14px;
-    z-index: 2000;
-    transition: opacity 0.3s;
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px;
+    border-radius: 20px; font-size: 14px; z-index: 2000; transition: opacity 0.3s;
   }
   .toast.hide { opacity: 0; pointer-events: none; }
 
-  /* 同步指示器 */
-  .cloud-toggle {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    margin-bottom: 16px;
-  }
-  .toggle-switch {
-    position: relative;
-    width: 50px;
-    height: 28px;
-  }
+  .cloud-toggle { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8f9fa; border-radius: 12px; margin-bottom: 16px; }
+  .toggle-switch { position: relative; width: 50px; height: 28px; }
   .toggle-switch input { opacity: 0; width: 0; height: 0; }
   .toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #ccc;
-    transition: 0.3s;
-    border-radius: 28px;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #ccc; transition: 0.3s; border-radius: 28px;
   }
   .toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 4px;
-    background: white;
-    transition: 0.3s;
-    border-radius: 50%;
+    position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+    background: white; transition: 0.3s; border-radius: 50%;
   }
   .toggle-switch input:checked + .toggle-slider { background: #e91e63; }
   .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
@@ -394,7 +173,7 @@
 <div class="header">
   <div class="header-title" id="site-title">我们的小窝</div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <div class="sync-status offline" id="sync-status">本地模式</div>
+    <div class="sync-status" id="sync-status">本地模式</div>
     <div class="header-date" id="today-date"></div>
   </div>
 </div>
@@ -420,31 +199,16 @@
         <div class="detail">从 <span id="start-date-display">未设置</span> 起</div>
       </div>
     </div>
-
     <div class="stat-grid" style="margin-bottom:20px;">
-      <div class="stat-card">
-        <div class="s-num" id="stat-diary">0</div>
-        <div class="s-label">日记篇数</div>
-      </div>
-      <div class="stat-card">
-        <div class="s-num" id="stat-photo">0</div>
-        <div class="s-label">相册照片</div>
-      </div>
-      <div class="stat-card">
-        <div class="s-num" id="stat-wish-done">0</div>
-        <div class="s-label">已实现心愿</div>
-      </div>
-      <div class="stat-card">
-        <div class="s-num" id="stat-ann">0</div>
-        <div class="s-label">纪念日数</div>
-      </div>
+      <div class="stat-card"><div class="s-num" id="stat-diary">0</div><div class="s-label">日记篇数</div></div>
+      <div class="stat-card"><div class="s-num" id="stat-photo">0</div><div class="s-label">相册照片</div></div>
+      <div class="stat-card"><div class="s-num" id="stat-wish-done">0</div><div class="s-label">已实现心愿</div></div>
+      <div class="stat-card"><div class="s-num" id="stat-ann">0</div><div class="s-label">纪念日数</div></div>
     </div>
-
     <div class="card">
       <div class="card-title">最近的日记</div>
       <div id="home-recent-diary"><div class="empty-tip">还没有日记，快去写第一篇吧～</div></div>
     </div>
-
     <div class="card">
       <div class="card-title">即将到来的纪念日</div>
       <div id="home-upcoming-ann"><div class="empty-tip">还没有纪念日，快去添加吧～</div></div>
@@ -457,11 +221,7 @@
       <div style="font-size:16px;font-weight:500;color:#e91e63;">我们的日记</div>
       <button class="btn-primary" onclick="openModal('diary-modal')">+ 写日记</button>
     </div>
-    <div class="card">
-      <div class="diary-list" id="diary-list">
-        <div class="empty-tip">还没有日记，快去写第一篇吧～</div>
-      </div>
-    </div>
+    <div class="card"><div class="diary-list" id="diary-list"><div class="empty-tip">还没有日记，快去写第一篇吧～</div></div></div>
   </div>
 
   <!-- 相册 -->
@@ -471,11 +231,7 @@
       <button class="btn-primary" onclick="document.getElementById('photo-input').click()">+ 添加照片</button>
     </div>
     <input type="file" id="photo-input" accept="image/*" multiple style="display:none;" onchange="addPhotos(this)">
-    <div class="card">
-      <div class="photo-grid" id="photo-grid">
-        <div class="empty-tip" id="photo-empty" style="grid-column:1/-1;">还没有照片，快去添加吧～</div>
-      </div>
-    </div>
+    <div class="card"><div class="photo-grid" id="photo-grid"><div class="empty-tip" style="grid-column:1/-1;">还没有照片，快去添加吧～</div></div></div>
   </div>
 
   <!-- 纪念日 -->
@@ -484,9 +240,7 @@
       <div style="font-size:16px;font-weight:500;color:#e91e63;">纪念日</div>
       <button class="btn-primary" onclick="openModal('ann-modal')">+ 添加</button>
     </div>
-    <div class="card">
-      <div id="ann-list"><div class="empty-tip">还没有纪念日，快去添加吧～</div></div>
-    </div>
+    <div class="card"><div id="ann-list"><div class="empty-tip">还没有纪念日，快去添加吧～</div></div></div>
   </div>
 
   <!-- 心愿清单 -->
@@ -495,9 +249,7 @@
       <div style="font-size:16px;font-weight:500;color:#e91e63;">心愿清单</div>
       <button class="btn-primary" onclick="openModal('wish-modal')">+ 添加心愿</button>
     </div>
-    <div class="card">
-      <div id="wish-list"><div class="empty-tip">还没有心愿，快去添加吧～</div></div>
-    </div>
+    <div class="card"><div id="wish-list"><div class="empty-tip">还没有心愿，快去添加吧～</div></div></div>
   </div>
 
   <!-- 设置 -->
@@ -523,7 +275,6 @@
       <button class="btn-primary" onclick="saveSettings()">保存设置</button>
     </div>
 
-    <!-- 云同步设置 -->
     <div class="card" style="margin-top:16px;">
       <div class="card-title">☁️ 云端同步</div>
       <div class="cloud-toggle">
@@ -532,24 +283,23 @@
           <span class="toggle-slider"></span>
         </label>
         <div class="cloud-info">
-          <strong id="cloud-status-text">云同步已关闭</strong><br>
-          <span id="cloud-desc-text">开启后，数据将在多设备间同步</span>
+          <strong id="cloud-status-text">云同步已开启</strong><br>
+          <span id="cloud-desc-text">数据将在保存时自动同步到云端</span>
         </div>
       </div>
-
-      <div id="cloud-config" style="display:none;">
+      <div id="cloud-config">
         <div class="form-group">
           <label class="form-label">JSONBin API Key</label>
-          <input type="text" id="cloud-api-key" placeholder="从 jsonbin.io 获取" onchange="readCloudConfigFromUI()">
-          <small style="color:#999;font-size:11px;">免费注册获取：<a href="https://jsonbin.io/register" target="_blank" style="color:#e91e63;">jsonbin.io</a></small>
+          <input type="text" id="cloud-api-key" value="$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq" onchange="readCloudConfigFromUI()">
+          <small style="color:#999;font-size:11px;">注册获取：<a href="https://jsonbin.io/register" target="_blank" style="color:#e91e63;">jsonbin.io</a></small>
         </div>
         <div class="form-group">
           <label class="form-label">Bin ID</label>
-          <input type="text" id="cloud-bin-id" placeholder="留空自动创建新的 Bin" onchange="readCloudConfigFromUI()">
+          <input type="text" id="cloud-bin-id" value="69f5e3bd856a68218999db49" onchange="readCloudConfigFromUI()">
         </div>
         <div style="display:flex;gap:10px;margin-top:12px;">
-          <button class="btn-primary" onclick="syncToCloud()" id="sync-btn">同步到云端</button>
-          <button class="btn-secondary" onclick="loadFromCloud()">从云端加载</button>
+          <button class="btn-primary" onclick="syncToCloud()">同步到云端</button>
+          <button class="btn-danger" onclick="loadFromCloud()">从云端加载</button>
         </div>
         <div id="sync-message" style="margin-top:12px;font-size:13px;color:#666;"></div>
       </div>
@@ -572,183 +322,81 @@
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- 日记弹窗 -->
-<div class="modal-overlay" id="diary-modal">
-  <div class="modal">
-    <div class="modal-title">写日记</div>
-    <div class="form-group">
-      <label class="form-label">标题</label>
-      <input type="text" id="diary-title-input" placeholder="今天发生了什么～">
-    </div>
-    <div class="form-group">
-      <label class="form-label">作者</label>
-      <select id="diary-author-input">
-        <option value="TA">TA写的</option>
-        <option value="我">我写的</option>
-        <option value="一起">我们一起写的</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">内容</label>
-      <textarea id="diary-content-input" placeholder="记录今天的点点滴滴..."></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">日期</label>
-      <input type="date" id="diary-date-input">
-    </div>
-    <div class="form-group">
-      <label class="form-label">心情</label>
-      <select id="diary-mood-input">
-        <option value="开心">开心</option>
-        <option value="甜蜜">甜蜜</option>
-        <option value="感动">感动</option>
-        <option value="想念">想念</option>
-        <option value="平静">平静</option>
-        <option value="难过">难过</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-danger" onclick="closeModal('diary-modal')">取消</button>
-      <button class="btn-primary" onclick="saveDiary()">保存</button>
-    </div>
-  </div>
-</div>
+<!-- 弹窗们 -->
+<div class="modal-overlay" id="diary-modal"><div class="modal">
+  <div class="modal-title">写日记</div>
+  <div class="form-group"><label class="form-label">标题</label><input type="text" id="diary-title-input" placeholder="今天发生了什么～"></div>
+  <div class="form-group"><label class="form-label">作者</label><select id="diary-author-input"><option value="TA">TA写的</option><option value="我">我写的</option><option value="一起">我们一起写的</option></select></div>
+  <div class="form-group"><label class="form-label">内容</label><textarea id="diary-content-input" placeholder="记录今天的点点滴滴..."></textarea></div>
+  <div class="form-group"><label class="form-label">日期</label><input type="date" id="diary-date-input"></div>
+  <div class="form-group"><label class="form-label">心情</label><select id="diary-mood-input"><option value="开心">开心</option><option value="甜蜜">甜蜜</option><option value="感动">感动</option><option value="想念">想念</option><option value="平静">平静</option><option value="难过">难过</option></select></div>
+  <div class="modal-actions"><button class="btn-danger" onclick="closeModal('diary-modal')">取消</button><button class="btn-primary" onclick="saveDiary()">保存</button></div>
+</div></div>
 
-<!-- 纪念日弹窗 -->
-<div class="modal-overlay" id="ann-modal">
-  <div class="modal">
-    <div class="modal-title">添加纪念日</div>
-    <div class="form-group">
-      <label class="form-label">纪念日名称</label>
-      <input type="text" id="ann-name-input" placeholder="例如：第一次见面">
-    </div>
-    <div class="form-group">
-      <label class="form-label">日期</label>
-      <input type="date" id="ann-date-input">
-    </div>
-    <div class="form-group">
-      <label class="form-label">备注</label>
-      <input type="text" id="ann-note-input" placeholder="关于这个特别的日子...">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-danger" onclick="closeModal('ann-modal')">取消</button>
-      <button class="btn-primary" onclick="saveAnniversary()">保存</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="ann-modal"><div class="modal">
+  <div class="modal-title">添加纪念日</div>
+  <div class="form-group"><label class="form-label">纪念日名称</label><input type="text" id="ann-name-input" placeholder="例如：第一次见面"></div>
+  <div class="form-group"><label class="form-label">日期</label><input type="date" id="ann-date-input"></div>
+  <div class="form-group"><label class="form-label">备注</label><input type="text" id="ann-note-input" placeholder="关于这个特别的日子..."></div>
+  <div class="modal-actions"><button class="btn-danger" onclick="closeModal('ann-modal')">取消</button><button class="btn-primary" onclick="saveAnniversary()">保存</button></div>
+</div></div>
 
-<!-- 心愿弹窗 -->
-<div class="modal-overlay" id="wish-modal">
-  <div class="modal">
-    <div class="modal-title">添加心愿</div>
-    <div class="form-group">
-      <label class="form-label">心愿内容</label>
-      <input type="text" id="wish-text-input" placeholder="例如：一起去看海">
-    </div>
-    <div class="form-group">
-      <label class="form-label">分类</label>
-      <select id="wish-cat-input">
-        <option value="旅行">旅行</option>
-        <option value="美食">美食</option>
-        <option value="生活">生活</option>
-        <option value="电影">电影</option>
-        <option value="礼物">礼物</option>
-        <option value="其他">其他</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-danger" onclick="closeModal('wish-modal')">取消</button>
-      <button class="btn-primary" onclick="saveWish()">保存</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="wish-modal"><div class="modal">
+  <div class="modal-title">添加心愿</div>
+  <div class="form-group"><label class="form-label">心愿内容</label><input type="text" id="wish-text-input" placeholder="例如：一起去看海"></div>
+  <div class="form-group"><label class="form-label">分类</label><select id="wish-cat-input"><option value="旅行">旅行</option><option value="美食">美食</option><option value="生活">生活</option><option value="电影">电影</option><option value="礼物">礼物</option><option value="其他">其他</option></select></div>
+  <div class="modal-actions"><button class="btn-danger" onclick="closeModal('wish-modal')">取消</button><button class="btn-primary" onclick="saveWish()">保存</button></div>
+</div></div>
 
-<!-- 日记详情弹窗 -->
-<div class="modal-overlay" id="diary-detail-modal">
-  <div class="modal">
-    <div id="diary-detail-content"></div>
-    <div class="modal-actions">
-      <button class="btn-danger" id="diary-delete-btn">删除</button>
-      <button class="btn-primary" onclick="closeModal('diary-detail-modal')">关闭</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="diary-detail-modal"><div class="modal">
+  <div id="diary-detail-content"></div>
+  <div class="modal-actions"><button class="btn-danger" id="diary-delete-btn">删除</button><button class="btn-primary" onclick="closeModal('diary-detail-modal')">关闭</button></div>
+</div></div>
 
-<!-- Toast 提示 -->
 <div class="toast hide" id="toast"></div>
 
 <script>
-// ---- 云同步配置 ----
+// ==== 云同步配置 ====
 const CLOUD_CONFIG_KEY = 'couple_cloud_config';
 const CLOUD_API = 'https://api.jsonbin.io/v3';
+const DEFAULT_API_KEY = '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq';
+const DEFAULT_BIN_ID = '69f5e3bd856a68218999db49';
 
-// 硬编码的默认配置（备用）
-const DEFAULT_CLOUD_CONFIG = {
+let cloudConfig = {
   enabled: true,
-  apiKey: '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq',
-  binId: '69f5e3bd856a68218999db49'
+  apiKey: DEFAULT_API_KEY,
+  binId: DEFAULT_BIN_ID
 };
 
-let cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
-
-function saveCloudConfig() {
-  // 只保存 cloudConfig 对象，不读取输入框
-  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
-
-  // 更新输入框显示
-  document.getElementById('cloud-api-key').value = cloudConfig.apiKey || '';
-  document.getElementById('cloud-bin-id').value = cloudConfig.binId || '';
-}
-
 function loadCloudConfig() {
-  // 先尝试从 localStorage 读取
   const s = localStorage.getItem(CLOUD_CONFIG_KEY);
   if (s) {
     try {
       const saved = JSON.parse(s);
       cloudConfig = { ...cloudConfig, ...saved };
-    } catch(e) {
-      // 解析失败，使用默认配置
-    }
+    } catch(e) {}
   }
-
-  // 确保关键字段有值（回退到默认值）
-  if (!cloudConfig.apiKey) cloudConfig.apiKey = DEFAULT_CLOUD_CONFIG.apiKey;
-  if (!cloudConfig.binId) cloudConfig.binId = DEFAULT_CLOUD_CONFIG.binId;
-  if (cloudConfig.enabled === undefined) cloudConfig.enabled = DEFAULT_CLOUD_CONFIG.enabled;
-
-  // 保存到 localStorage（确保不丢失）
-  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
-
-  // 更新界面
-  document.getElementById('cloud-enabled').checked = cloudConfig.enabled;
-  document.getElementById('cloud-api-key').value = cloudConfig.apiKey;
-  document.getElementById('cloud-bin-id').value = cloudConfig.binId;
+  // 确保关键字段有值
+  if (!cloudConfig.apiKey) cloudConfig.apiKey = DEFAULT_API_KEY;
+  if (!cloudConfig.binId) cloudConfig.binId = DEFAULT_BIN_ID;
+  saveCloudConfig();
   updateCloudUI();
 }
 
-// 从输入框读取用户修改（在 onchange 和保存时调用）
+function saveCloudConfig() {
+  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+  document.getElementById('cloud-api-key').value = cloudConfig.apiKey;
+  document.getElementById('cloud-bin-id').value = cloudConfig.binId;
+  document.getElementById('cloud-enabled').checked = cloudConfig.enabled;
+}
+
 function readCloudConfigFromUI() {
-  const inputKey = document.getElementById('cloud-api-key').value.trim();
-  const inputBinId = document.getElementById('cloud-bin-id').value.trim();
-
-  // 如果输入框有值就用用户的，否则保持现有值（不要覆盖为空白）
-  if (inputKey) {
-    cloudConfig.apiKey = inputKey;
-  } else if (!cloudConfig.apiKey) {
-    // 如果现有值也没有，使用默认值
-    cloudConfig.apiKey = DEFAULT_CLOUD_CONFIG.apiKey;
-  }
-
-  if (inputBinId) {
-    cloudConfig.binId = inputBinId;
-  } else if (!cloudConfig.binId) {
-    cloudConfig.binId = DEFAULT_CLOUD_CONFIG.binId;
-  }
-
+  const k = document.getElementById('cloud-api-key').value.trim();
+  const b = document.getElementById('cloud-bin-id').value.trim();
+  if (k) cloudConfig.apiKey = k;
+  if (b) cloudConfig.binId = b;
   saveCloudConfig();
 }
 
@@ -756,411 +404,181 @@ function toggleCloudSync() {
   cloudConfig.enabled = document.getElementById('cloud-enabled').checked;
   saveCloudConfig();
   updateCloudUI();
-  if (cloudConfig.enabled && cloudConfig.apiKey && cloudConfig.binId) {
-    loadFromCloud();
-  }
 }
 
 function updateCloudUI() {
-  const configDiv = document.getElementById('cloud-config');
   const statusText = document.getElementById('cloud-status-text');
   const descText = document.getElementById('cloud-desc-text');
   const syncStatus = document.getElementById('sync-status');
+  const cloudConfigDiv = document.getElementById('cloud-config');
 
   if (cloudConfig.enabled) {
-    configDiv.style.display = 'block';
-    if (cloudConfig.apiKey) {
-      statusText.textContent = '云同步已开启';
-      descText.textContent = '数据将在保存时自动同步到云端';
-      syncStatus.className = 'sync-status synced';
-      syncStatus.textContent = '已同步';
-    } else {
-      statusText.textContent = '请配置 API Key';
-      descText.textContent = '填写 JSONBin API Key 开启同步';
-      syncStatus.className = 'sync-status error';
-      syncStatus.textContent = '待配置';
-    }
+    cloudConfigDiv.style.display = 'block';
+    statusText.textContent = '云同步已开启';
+    descText.textContent = '数据将在保存时自动同步到云端';
+    syncStatus.className = 'sync-status';
+    syncStatus.style.background = '#e8f5e9';
+    syncStatus.style.color = '#4caf50';
+    syncStatus.textContent = '已同步';
   } else {
-    configDiv.style.display = 'none';
-    statusText.textContent = '云同步已关闭';
-    descText.textContent = '开启后，数据将在多设备间同步';
-    syncStatus.className = 'sync-status offline';
+    cloudConfigDiv.style.display = 'none';
+    syncStatus.className = 'sync-status';
+    syncStatus.style.background = '#f5f5f5';
+    syncStatus.style.color = '#999';
     syncStatus.textContent = '本地模式';
   }
 }
 
+// ==== 工具函数 ====
 function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.remove('hide');
-  setTimeout(() => toast.classList.add('hide'), 2500);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hide');
+  setTimeout(() => t.classList.add('hide'), 2500);
 }
 
 function setSyncStatus(status, msg) {
   const el = document.getElementById('sync-status');
-  el.className = 'sync-status ' + status;
+  el.className = 'sync-status';
+  if (status === 'syncing') { el.style.background='#fff3e0'; el.style.color='#ff9800'; }
+  else if (status === 'error') { el.style.background='#ffebee'; el.style.color='#f44336'; }
+  else { el.style.background='#e8f5e9'; el.style.color='#4caf50'; }
   if (msg) el.textContent = msg;
 }
 
-// ---- 云端同步核心函数 ----
-const MAX_CLOUD_SIZE = 900 * 1024; // 900KB，留一些余量
-
-function estimateSize(obj) {
-  return new Blob([JSON.stringify(obj)]).size;
-}
-
-// 确保从UI读取最新配置
-function ensureCloudConfig() {
-  readCloudConfigFromUI();
-}
-
-async function syncToCloud() {
-  // 先读取UI上的最新配置
-  ensureCloudConfig();
-
-  if (!cloudConfig.apiKey) {
-    showToast('请先填写 API Key');
-    return;
-  }
-
-  // 检查数据大小
-  const textData = {
-    settings: data.settings,
-    diaries: data.diaries,
-    anniversaries: data.anniversaries,
-    wishlist: data.wishlist
-  };
-  const textSize = estimateSize(textData);
-  const totalSize = estimateSize(data);
-
-  if (totalSize > MAX_CLOUD_SIZE) {
-    // 数据太大，只同步文字内容，图片保留本地
-    if (data.photos.length > 0) {
-      if (!confirm('照片数据太大（' + (totalSize/1024).toFixed(0) + 'KB），无法同步到云端。\n\n是否只同步文字内容（日记、纪念日、心愿）？\n照片将只保存在本设备。')) {
-        setSyncStatus('error', '同步取消');
-        return;
-      }
-      // 只同步文字数据
-      const originalPhotos = data.photos;
-      data.photos = [];
-      syncTextOnly(textData, originalPhotos);
-      return;
-    }
-  }
-
-  doSync(data);
-}
-
-async function syncTextOnly(textData, originalPhotos) {
-  setSyncStatus('syncing', '同步文字中...');
-  document.getElementById('sync-message').textContent = '正在同步文字内容...';
-
-  try {
-    let binId = cloudConfig.binId;
-    let method = 'POST';
-    let url = CLOUD_API + '/b';
-    const payload = JSON.stringify(textData);
-
-    if (binId) {
-      method = 'PUT';
-      url = CLOUD_API + '/b/' + binId;
-    }
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Master-Key': cloudConfig.apiKey
-    };
-
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: payload
-    });
-
-    if (!response.ok) {
-      throw new Error('同步失败: ' + response.status);
-    }
-
-    const result = await response.json();
-    if (result.metadata && result.metadata.id && !cloudConfig.binId) {
-      cloudConfig.binId = result.metadata.id;
-      saveCloudConfig();
-      document.getElementById('cloud-bin-id').value = cloudConfig.binId;
-    }
-
-    // 恢复本地照片
-    data.photos = originalPhotos;
-    save();
-
-    showToast('文字内容同步成功！照片仅本机可见');
-    setSyncStatus('synced', '已同步(无照片)');
-    document.getElementById('sync-message').textContent = '文字同步成功 ' + new Date().toLocaleTimeString() + '（照片未同步）';
-  } catch (err) {
-    data.photos = originalPhotos;
-    console.error('Sync error:', err);
-    setSyncStatus('error', '同步失败');
-    document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
-    showToast('同步失败: ' + err.message);
-  }
-}
-
-async function doSync(payloadData) {
-  setSyncStatus('syncing', '同步中...');
-  document.getElementById('sync-message').textContent = '正在同步到云端...';
-
-  try {
-    const payload = JSON.stringify(payloadData);
-    let binId = cloudConfig.binId;
-    let method = 'POST';
-    let url = CLOUD_API + '/b';
-
-    if (binId) {
-      method = 'PUT';
-      url = CLOUD_API + '/b/' + binId;
-    }
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Master-Key': cloudConfig.apiKey
-    };
-
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: payload
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('同步失败详情:', response.status, errorText);
-      throw new Error('同步失败: ' + response.status + ' - ' + (errorText || '无详细信息'));
-    }
-
-    const result = await response.json();
-    if (result.metadata && result.metadata.id && !cloudConfig.binId) {
-      cloudConfig.binId = result.metadata.id;
-      saveCloudConfig();
-      document.getElementById('cloud-bin-id').value = cloudConfig.binId;
-      showToast('已创建新的云端存储');
-    } else {
-      showToast('同步成功！');
-    }
-
-    setSyncStatus('synced', '已同步');
-    document.getElementById('sync-message').textContent = '同步成功 ' + new Date().toLocaleTimeString();
-  } catch (err) {
-    console.error('Sync error:', err);
-    setSyncStatus('error', '同步失败');
-    // 更友好的错误提示
-    let msg = err.message;
-    if (err.message.includes('403')) {
-      msg = '403错误：可能是网络限制，请检查是否在公司/校园网，或尝试切换WiFi/4G';
-    } else if (err.message.includes('Failed to fetch')) {
-      msg = '网络错误：无法连接到服务器，请检查网络连接';
-    }
-    document.getElementById('sync-message').textContent = msg;
-    showToast(msg);
-  }
-}
-
-async function loadFromCloud() {
-  if (!cloudConfig.apiKey) {
-    showToast('请先填写 API Key');
-    return;
-  }
-
-  if (!cloudConfig.binId) {
-    showToast('请先同步到云端创建存储');
-    return;
-  }
-
-  setSyncStatus('syncing', '加载中...');
-  document.getElementById('sync-message').textContent = '正在从云端加载...';
-
-  try {
-    const response = await fetch(CLOUD_API + '/b/' + cloudConfig.binId + '/latest', {
-      method: 'GET',
-      headers: {
-        'X-Master-Key': cloudConfig.apiKey
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('加载失败: ' + response.status);
-    }
-
-    const result = await response.json();
-    if (result.record) {
-      // 保留本地照片，合并云端文字数据
-      const localPhotos = data.photos;
-      data = result.record;
-
-      // 如果云端没有照片数据，保留本地照片
-      if (!data.photos || data.photos.length === 0) {
-        data.photos = localPhotos;
-      }
-
-      save();
-      applySettings();
-      renderAll();
-      showToast('从云端加载成功！');
-      setSyncStatus('synced', '已同步');
-      document.getElementById('sync-message').textContent = '加载成功 ' + new Date().toLocaleTimeString();
-    }
-  } catch (err) {
-    console.error('Load error:', err);
-    setSyncStatus('error', '加载失败');
-    document.getElementById('sync-message').textContent = '加载失败: ' + err.message;
-    showToast('加载失败: ' + err.message);
-  }
-}
-
-async function loadFromCloud() {
-  if (!cloudConfig.apiKey) {
-    showToast('请先填写 API Key');
-    return;
-  }
-
-  if (!cloudConfig.binId) {
-    showToast('请先同步到云端创建存储');
-    return;
-  }
-
-  setSyncStatus('syncing', '加载中...');
-  document.getElementById('sync-message').textContent = '正在从云端加载...';
-
-  try {
-    const response = await fetch(CLOUD_API + '/b/' + cloudConfig.binId + '/latest', {
-      method: 'GET',
-      headers: {
-        'X-Master-Key': cloudConfig.apiKey
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('加载失败: ' + response.status);
-    }
-
-    const result = await response.json();
-    if (result.record) {
-      data = result.record;
-      save();
-      applySettings();
-      renderAll();
-      showToast('从云端加载成功！');
-      setSyncStatus('synced', '已同步');
-      document.getElementById('sync-message').textContent = '加载成功 ' + new Date().toLocaleTimeString();
-    }
-  } catch (err) {
-    console.error('Load error:', err);
-    setSyncStatus('error', '加载失败');
-    document.getElementById('sync-message').textContent = '加载失败: ' + err.message;
-    showToast('加载失败: ' + err.message);
-  }
-}
-
-// ---- 数据存储 ----
+// ==== 数据存储 ====
 let data = {
   settings: { title: '我们的小窝', name1: '', name2: '', startDate: '' },
-  diaries: [],
-  photos: [],
-  anniversaries: [],
-  wishlist: []
+  diaries: [], photos: [], anniversaries: [], wishlist: []
 };
 
 function save() {
   try {
     localStorage.setItem('couple_data', JSON.stringify(data));
-    // 自动同步到云端（异步，不阻塞保存）
-    if (cloudConfig.enabled && cloudConfig.apiKey) {
-      syncToCloud().catch(e => console.error('Sync error:', e));
-    }
   } catch(e) {
     console.error('Save error:', e);
-    showToast('保存失败，请重试');
+    showToast('保存失败：' + e.message);
+  }
+}
+
+function saveAndSync() {
+  save();
+  if (cloudConfig.enabled && cloudConfig.apiKey && cloudConfig.binId) {
+    syncToCloud().catch(e => console.error('Sync error:', e));
   }
 }
 
 function load() {
   try {
     const s = localStorage.getItem('couple_data');
-    if (s) {
-      data = JSON.parse(s);
+    if (s) data = JSON.parse(s);
+  } catch(e) { console.error('Load error:', e); }
+}
+
+// ==== 云端同步 ====
+async function syncToCloud() {
+  if (!cloudConfig.apiKey || !cloudConfig.binId) return;
+  setSyncStatus('syncing', '同步中...');
+  document.getElementById('sync-message').textContent = '正在同步...';
+
+  try {
+    const payload = JSON.stringify(data);
+    let method = cloudConfig.binId ? 'PUT' : 'POST';
+    let url = cloudConfig.binId ? CLOUD_API + '/b/' + cloudConfig.binId : CLOUD_API + '/b';
+
+    const response = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': cloudConfig.apiKey },
+      body: payload
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(response.status + ': ' + errText);
     }
-  } catch(e) {
-    console.error('Load error:', e);
+
+    const result = await response.json();
+    if (result.metadata && result.metadata.id) {
+      cloudConfig.binId = result.metadata.id;
+      saveCloudConfig();
+    }
+
+    setSyncStatus('synced', '已同步');
+    document.getElementById('sync-message').textContent = '同步成功 ' + new Date().toLocaleTimeString();
+    showToast('同步成功！');
+  } catch(err) {
+    console.error('Sync error:', err);
+    setSyncStatus('error', '同步失败');
+    document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
   }
 }
 
-// ---- 初始化 ----
-loadCloudConfig();
-load();
-applySettings();
-renderAll();
-setTodayDate();
-
-// 如果已开启云同步，自动加载最新数据
-if (cloudConfig.enabled && cloudConfig.apiKey && cloudConfig.binId) {
-  loadFromCloud();
+async function loadFromCloud() {
+  if (!cloudConfig.apiKey || !cloudConfig.binId) {
+    showToast('请先配置云同步');
+    return;
+  }
+  setSyncStatus('syncing', '加载中...');
+  try {
+    const response = await fetch(CLOUD_API + '/b/' + cloudConfig.binId + '/latest', {
+      headers: { 'X-Master-Key': cloudConfig.apiKey }
+    });
+    if (!response.ok) throw new Error(response.status + ': ' + await response.text());
+    const result = await response.json();
+    if (result.record) {
+      data = result.record;
+      save();
+      applySettings();
+      renderAll();
+      showToast('加载成功！');
+      setSyncStatus('synced', '已同步');
+    }
+  } catch(err) {
+    console.error('Load error:', err);
+    setSyncStatus('error', '加载失败');
+    document.getElementById('sync-message').textContent = '加载失败: ' + err.message;
+    showToast('加载失败: ' + err.message);
+  }
 }
 
-function setTodayDate() {
-  const now = new Date();
-  const s = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
-  document.getElementById('today-date').textContent = s;
-  const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-  document.getElementById('diary-date-input').value = y+'-'+m+'-'+d;
-}
-
-// ---- 页面切换 ----
+// ==== 页面切换 ====
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
-  else {
-    // 如果没有传入按钮，根据 name 找到对应的按钮
-    const btns = document.querySelectorAll('.nav-btn');
-    btns.forEach(b => {
-      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+name+"'")) {
-        b.classList.add('active');
-      }
-    });
-  }
   if (name === 'home') renderHome();
 }
 
-// ---- 弹窗 ----
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+// ==== 弹窗 ====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 
-// ---- 恋爱计时 ----
-function calcLoveDays(startDateStr) {
-  if (!startDateStr) return 0;
-  const start = new Date(startDateStr);
+// ==== 初始化 ====
+load();
+loadCloudConfig();
+applySettings();
+renderAll();
+setTodayDate();
+
+function setTodayDate() {
   const now = new Date();
-  start.setHours(0,0,0,0); now.setHours(0,0,0,0);
-  return Math.max(0, Math.floor((now - start) / 86400000) + 1);
+  document.getElementById('today-date').textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+  const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+  document.getElementById('diary-date-input').value = y + '-' + m + '-' + d;
 }
 
-// ---- 渲染首页 ----
+// ==== 渲染首页 ====
 function renderHome() {
   const days = calcLoveDays(data.settings.startDate);
   document.getElementById('love-days').textContent = days;
   document.getElementById('love-days2').textContent = days;
-  document.getElementById('start-date-display').textContent = data.settings.startDate || '未设置（请前往设置）';
+  document.getElementById('start-date-display').textContent = data.settings.startDate || '未设置';
 
-  const n1 = data.settings.name1 || 'TA';
-  const n2 = data.settings.name2 || '我';
+  const n1 = data.settings.name1 || 'TA', n2 = data.settings.name2 || '我';
   document.getElementById('home-names').textContent = '❤ ' + n1 + ' & ' + n2 + ' ❤';
 
   document.getElementById('stat-diary').textContent = data.diaries.length;
@@ -1168,85 +586,66 @@ function renderHome() {
   document.getElementById('stat-wish-done').textContent = data.wishlist.filter(w=>w.done).length;
   document.getElementById('stat-ann').textContent = data.anniversaries.length;
 
-  const recentDiaries = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const recent = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
   const rdEl = document.getElementById('home-recent-diary');
-  if (recentDiaries.length === 0) {
-    rdEl.innerHTML = '<div class="empty-tip">还没有日记，快去写第一篇吧～</div>';
-  } else {
-    rdEl.innerHTML = recentDiaries.map(d => `
-      <div class="diary-item" onclick="showDiaryDetail('${d.id}')">
-        <div class="d-date">${d.date} · ${d.mood}</div>
-        <div class="d-title">${d.title}</div>
-        <div class="d-preview">${d.content}</div>
-        <span class="d-author">${d.author}</span>
-      </div>
-    `).join('');
-  }
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const anns = data.anniversaries.map(a => {
-    const d = new Date(a.date);
-    const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
-    if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
-    const diff = Math.floor((thisYear - today) / 86400000);
-    return { ...a, diff };
-  }).sort((a,b) => a.diff - b.diff).slice(0,5);
-
-  const upEl = document.getElementById('home-upcoming-ann');
-  if (anns.length === 0) {
-    upEl.innerHTML = '<div class="empty-tip">还没有纪念日，快去添加吧～</div>';
-  } else {
-    upEl.innerHTML = anns.map(a => `
-      <div class="anniversary-item">
-        <div class="ann-info">
-          <div class="ann-name">${a.name}</div>
-          <div class="ann-date">${a.date}${a.note ? ' · ' + a.note : ''}</div>
-        </div>
-        <span class="ann-badge ${a.diff===0?'today':''}">${a.diff===0?'就是今天！':'还有'+a.diff+'天'}</span>
-      </div>
-    `).join('');
-  }
-}
-
-// ---- 日记 ----
-function saveDiary() {
-  try {
-    const title = document.getElementById('diary-title-input').value.trim();
-    const content = document.getElementById('diary-content-input').value.trim();
-    const date = document.getElementById('diary-date-input').value;
-    const author = document.getElementById('diary-author-input').value;
-    const mood = document.getElementById('diary-mood-input').value;
-    if (!title || !content) { alert('请填写标题和内容～'); return; }
-    data.diaries.push({ id: Date.now().toString(), title, content, date, author, mood });
-    save();
-    closeModal('diary-modal');
-    document.getElementById('diary-title-input').value = '';
-    document.getElementById('diary-content-input').value = '';
-    renderDiaryList();
-    renderHome();
-    showToast('日记已保存');
-  } catch(e) {
-    console.error('Save diary error:', e);
-    alert('保存失败，请重试');
-  }
-}
-
-function renderDiaryList() {
-  const el = document.getElementById('diary-list');
-  const sorted = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date));
-  if (sorted.length === 0) {
-    el.innerHTML = '<div class="empty-tip">还没有日记，快去写第一篇吧～</div>';
-    return;
-  }
-  el.innerHTML = sorted.map(d => `
+  rdEl.innerHTML = recent.length ? recent.map(d => `
     <div class="diary-item" onclick="showDiaryDetail('${d.id}')">
       <div class="d-date">${d.date} · ${d.mood}</div>
       <div class="d-title">${d.title}</div>
       <div class="d-preview">${d.content}</div>
       <span class="d-author">${d.author}</span>
-    </div>
-  `).join('');
+    </div>`).join('') : '<div class="empty-tip">还没有日记</div>';
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const anns = data.anniversaries.map(a => {
+    const d = new Date(a.date);
+    const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+    if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
+    return { ...a, diff: Math.floor((thisYear - today) / 86400000) };
+  }).sort((a,b)=>a.diff-b.diff).slice(0,5);
+  const upEl = document.getElementById('home-upcoming-ann');
+  upEl.innerHTML = anns.length ? anns.map(a => `
+    <div class="anniversary-item">
+      <div class="ann-info"><div class="ann-name">${a.name}</div><div class="ann-date">${a.date}${a.note?' · '+a.note:''}</div></div>
+      <span class="ann-badge ${a.diff===0?'today':''}">${a.diff===0?'就是今天！':'还有'+a.diff+'天'}</span>
+    </div>`).join('') : '<div class="empty-tip">还没有纪念日</div>';
+}
+
+function calcLoveDays(s) {
+  if (!s) return 0;
+  const start = new Date(s), now = new Date();
+  start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((now - start) / 86400000) + 1);
+}
+
+// ==== 日记 ====
+function saveDiary() {
+  const title = document.getElementById('diary-title-input').value.trim();
+  const content = document.getElementById('diary-content-input').value.trim();
+  const date = document.getElementById('diary-date-input').value;
+  const author = document.getElementById('diary-author-input').value;
+  const mood = document.getElementById('diary-mood-input').value;
+  if (!title || !content) { alert('请填写标题和内容～'); return; }
+  data.diaries.push({ id: Date.now().toString(), title, content, date, author, mood });
+  saveAndSync();
+  closeModal('diary-modal');
+  document.getElementById('diary-title-input').value = '';
+  document.getElementById('diary-content-input').value = '';
+  renderDiaryList();
+  renderHome();
+  showToast('日记已保存');
+}
+
+function renderDiaryList() {
+  const el = document.getElementById('diary-list');
+  const sorted = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML = sorted.length ? sorted.map(d => `
+    <div class="diary-item" onclick="showDiaryDetail('${d.id}')">
+      <div class="d-date">${d.date} · ${d.mood}</div>
+      <div class="d-title">${d.title}</div>
+      <div class="d-preview">${d.content}</div>
+      <span class="d-author">${d.author}</span>
+    </div>`).join('') : '<div class="empty-tip">还没有日记</div>';
 }
 
 function showDiaryDetail(id) {
@@ -1255,39 +654,31 @@ function showDiaryDetail(id) {
   document.getElementById('diary-detail-content').innerHTML = `
     <div style="color:#aaa;font-size:12px;margin-bottom:8px;">${d.date} · ${d.mood} · ${d.author}</div>
     <div style="font-size:17px;font-weight:500;color:#333;margin-bottom:16px;">${d.title}</div>
-    <div style="font-size:14px;color:#555;line-height:1.8;white-space:pre-wrap;">${d.content}</div>
-  `;
+    <div style="font-size:14px;color:#555;line-height:1.8;white-space:pre-wrap;">${d.content}</div>`;
   document.getElementById('diary-delete-btn').onclick = () => {
-    if (confirm('确定要删除这篇日记吗？')) {
+    if (confirm('确定删除？')) {
       data.diaries = data.diaries.filter(x => x.id !== id);
-      save();
+      saveAndSync();
       closeModal('diary-detail-modal');
-      renderDiaryList();
-      renderHome();
+      renderDiaryList(); renderHome();
     }
   };
   openModal('diary-detail-modal');
 }
 
-// ---- 相册 ----
-function compressImage(file, maxWidth = 1200, quality = 0.7) {
+// ==== 相册（压缩图片）====
+function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        let w = img.width, h = img.height;
+        if (w > 1200) { h = (h * 1200) / w; w = 1200; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -1299,39 +690,21 @@ function compressImage(file, maxWidth = 1200, quality = 0.7) {
 
 function addPhotos(input) {
   const files = Array.from(input.files);
-  if (files.length === 0) return;
-
-  showToast('正在压缩 ' + files.length + ' 张照片...');
-  let loaded = 0;
-  let hasError = false;
-
+  if (!files.length) return;
+  showToast('正在处理 ' + files.length + ' 张照片...');
+  let done = 0;
   files.forEach(file => {
-    compressImage(file, 1200, 0.6).then(compressedDataUrl => {
-      data.photos.push({
-        id: Date.now().toString() + Math.random(),
-        src: compressedDataUrl,
-        name: file.name,
-        date: new Date().toISOString().slice(0,10)
-      });
-      loaded++;
-      if (loaded === files.length) {
-        if (!hasError) {
-          save();
-          renderPhotoGrid();
-          renderHome();
-          showToast('成功添加 ' + files.length + ' 张照片');
-        }
+    compressImage(file).then(src => {
+      data.photos.push({ id: Date.now()+''+done, src, name: file.name, date: new Date().toISOString().slice(0,10) });
+      done++;
+      if (done === files.length) {
+        saveAndSync();
+        renderPhotoGrid(); renderHome();
+        showToast('已添加 ' + files.length + ' 张照片');
       }
-    }).catch(err => {
-      console.error('图片处理失败:', err);
-      hasError = true;
-      loaded++;
-      if (loaded === files.length) {
-        save();
-        renderPhotoGrid();
-        renderHome();
-        showToast('部分照片添加失败，请重试');
-      }
+    }).catch(() => {
+      done++;
+      if (done === files.length) { saveAndSync(); renderPhotoGrid(); renderHome(); }
     });
   });
   input.value = '';
@@ -1339,143 +712,82 @@ function addPhotos(input) {
 
 function renderPhotoGrid() {
   const el = document.getElementById('photo-grid');
-  if (data.photos.length === 0) {
-    el.innerHTML = '<div class="empty-tip" style="grid-column:1/-1;">还没有照片，快去添加吧～</div>';
-    return;
-  }
+  if (!data.photos.length) { el.innerHTML = '<div class="empty-tip" style="grid-column:1/-1;">还没有照片</div>'; return; }
   el.innerHTML = data.photos.map(p => `
-    <div class="photo-item" onclick="deletePhoto('${p.id}')">
+    <div class="photo-item" onclick="if(confirm('删除这张照片？')){data.photos=data.photos.filter(x=>x.id!=='${p.id}');saveAndSync();renderPhotoGrid();renderHome();}">
       <img src="${p.src}" alt="${p.name}" loading="lazy">
       <div class="photo-caption">${p.date}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function deletePhoto(id) {
-  if (confirm('删除这张照片？')) {
-    data.photos = data.photos.filter(p => p.id !== id);
-    save();
-    renderPhotoGrid();
-    renderHome();
-  }
-}
-
-// ---- 纪念日 ----
+// ==== 纪念日 ====
 function saveAnniversary() {
-  try {
-    const name = document.getElementById('ann-name-input').value.trim();
-    const date = document.getElementById('ann-date-input').value;
-    const note = document.getElementById('ann-note-input').value.trim();
-    if (!name || !date) { alert('请填写名称和日期～'); return; }
-    data.anniversaries.push({ id: Date.now().toString(), name, date, note });
-    save();
-    closeModal('ann-modal');
-    document.getElementById('ann-name-input').value = '';
-    document.getElementById('ann-note-input').value = '';
-    renderAnniversaryList();
-    renderHome();
-    showToast('纪念日已添加');
-  } catch(e) {
-    console.error('Save anniversary error:', e);
-    alert('保存失败，请重试');
-  }
+  const name = document.getElementById('ann-name-input').value.trim();
+  const date = document.getElementById('ann-date-input').value;
+  const note = document.getElementById('ann-note-input').value.trim();
+  if (!name || !date) { alert('请填写名称和日期～'); return; }
+  data.anniversaries.push({ id: Date.now().toString(), name, date, note });
+  saveAndSync();
+  closeModal('ann-modal');
+  document.getElementById('ann-name-input').value = '';
+  document.getElementById('ann-note-input').value = '';
+  renderAnniversaryList(); renderHome();
+  showToast('纪念日已添加');
 }
 
 function renderAnniversaryList() {
   const el = document.getElementById('ann-list');
-  if (data.anniversaries.length === 0) {
-    el.innerHTML = '<div class="empty-tip">还没有纪念日，快去添加吧～</div>';
-    return;
-  }
+  if (!data.anniversaries.length) { el.innerHTML = '<div class="empty-tip">还没有纪念日</div>'; return; }
   const today = new Date(); today.setHours(0,0,0,0);
   el.innerHTML = data.anniversaries.map(a => {
     const d = new Date(a.date);
     const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
     if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
     const diff = Math.floor((thisYear - today) / 86400000);
-    return `
-      <div class="anniversary-item">
-        <div class="ann-info">
-          <div class="ann-name">${a.name}</div>
-          <div class="ann-date">${a.date}${a.note ? ' · ' + a.note : ''}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="ann-badge ${diff===0?'today':''}">${diff===0?'就是今天！':'还有'+diff+'天'}</span>
-          <button class="btn-danger" onclick="deleteAnn('${a.id}');event.stopPropagation()">删除</button>
-        </div>
+    return `<div class="anniversary-item">
+      <div class="ann-info"><div class="ann-name">${a.name}</div><div class="ann-date">${a.date}${a.note?' · '+a.note:''}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="ann-badge ${diff===0?'today':''}">${diff===0?'就是今天！':'还有'+diff+'天'}</span>
+        <button class="btn-danger" onclick="data.anniversaries=data.anniversaries.filter(x=>x.id!=='${a.id}');saveAndSync();renderAnniversaryList();renderHome();event.stopPropagation();">删除</button>
       </div>
-    `;
+    </div>`;
   }).join('');
 }
 
-function deleteAnn(id) {
-  if (confirm('确定删除这个纪念日？')) {
-    data.anniversaries = data.anniversaries.filter(a => a.id !== id);
-    save();
-    renderAnniversaryList();
-    renderHome();
-  }
-}
-
-// ---- 心愿清单 ----
+// ==== 心愿 ====
 function saveWish() {
-  try {
-    const text = document.getElementById('wish-text-input').value.trim();
-    const cat = document.getElementById('wish-cat-input').value;
-    if (!text) { alert('请填写心愿内容～'); return; }
-    data.wishlist.push({ id: Date.now().toString(), text, cat, done: false });
-    save();
-    closeModal('wish-modal');
-    document.getElementById('wish-text-input').value = '';
-    renderWishList();
-    renderHome();
-    showToast('心愿已添加');
-  } catch(e) {
-    console.error('Save wish error:', e);
-    alert('保存失败，请重试');
-  }
+  const text = document.getElementById('wish-text-input').value.trim();
+  const cat = document.getElementById('wish-cat-input').value;
+  if (!text) { alert('请填写心愿内容～'); return; }
+  data.wishlist.push({ id: Date.now().toString(), text, cat, done: false });
+  saveAndSync();
+  closeModal('wish-modal');
+  document.getElementById('wish-text-input').value = '';
+  renderWishList(); renderHome();
+  showToast('心愿已添加');
 }
 
 function toggleWish(id) {
   const w = data.wishlist.find(x => x.id === id);
-  if (w) { w.done = !w.done; save(); renderWishList(); renderHome(); }
-}
-
-function deleteWish(id) {
-  if (confirm('删除这个心愿？')) {
-    data.wishlist = data.wishlist.filter(w => w.id !== id);
-    save();
-    renderWishList();
-    renderHome();
-  }
+  if (w) { w.done = !w.done; saveAndSync(); renderWishList(); renderHome(); }
 }
 
 function renderWishList() {
   const el = document.getElementById('wish-list');
-  if (data.wishlist.length === 0) {
-    el.innerHTML = '<div class="empty-tip">还没有心愿，快去添加吧～</div>';
-    return;
-  }
+  if (!data.wishlist.length) { el.innerHTML = '<div class="empty-tip">还没有心愿</div>'; return; }
   const todo = data.wishlist.filter(w => !w.done);
   const done = data.wishlist.filter(w => w.done);
-  const renderItem = w => `
-    <div class="wish-item">
-      <div class="wish-check ${w.done?'done':''}" onclick="toggleWish('${w.id}')"></div>
-      <span class="wish-text ${w.done?'done':''}">${w.text}</span>
-      <span class="wish-category">${w.cat}</span>
-      <button class="btn-danger" onclick="deleteWish('${w.id}')" style="margin-left:8px;padding:4px 10px;">删除</button>
-    </div>
-  `;
-  let html = '';
-  if (todo.length > 0) html += todo.map(renderItem).join('');
-  if (done.length > 0) {
-    html += `<div style="font-size:12px;color:#ccc;margin:12px 0 8px;">已实现 (${done.length})</div>`;
-    html += done.map(renderItem).join('');
-  }
-  el.innerHTML = html;
+  const render = w => `<div class="wish-item">
+    <div class="wish-check ${w.done?'done':''}" onclick="toggleWish('${w.id}')"></div>
+    <span class="wish-text ${w.done?'done':''}">${w.text}</span>
+    <span class="wish-category">${w.cat}</span>
+    <button class="btn-danger" onclick="data.wishlist=data.wishlist.filter(x=>x.id!=='${w.id}');saveAndSync();renderWishList();renderHome();" style="margin-left:8px;padding:4px 10px;">删除</button>
+  </div>`;
+  el.innerHTML = (todo.length ? todo.map(render).join('') : '') +
+    (done.length ? '<div style="font-size:12px;color:#ccc;margin:12px 0 8px;">已实现 (' + done.length + ')</div>' + done.map(render).join('') : '');
 }
 
-// ---- 设置 ----
+// ==== 设置 ====
 function applySettings() {
   document.getElementById('site-title').textContent = data.settings.title || '我们的小窝';
   document.title = data.settings.title || '我们的小窝';
@@ -1486,67 +798,47 @@ function applySettings() {
 }
 
 function saveSettings() {
-  try {
-    data.settings.title = document.getElementById('set-title').value || '我们的小窝';
-    data.settings.name1 = document.getElementById('set-name1').value;
-    data.settings.name2 = document.getElementById('set-name2').value;
-    data.settings.startDate = document.getElementById('set-start-date').value;
-    save();
-    applySettings();
-    renderHome();
-    showToast('设置已保存');
-  } catch(e) {
-    console.error('Save settings error:', e);
-    alert('保存失败，请重试');
-  }
+  data.settings.title = document.getElementById('set-title').value || '我们的小窝';
+  data.settings.name1 = document.getElementById('set-name1').value;
+  data.settings.name2 = document.getElementById('set-name2').value;
+  data.settings.startDate = document.getElementById('set-start-date').value;
+  saveAndSync();
+  applySettings(); renderHome();
+  showToast('设置已保存');
 }
 
-// ---- 数据导出/导入 ----
+// ==== 数据管理 ====
 function exportData() {
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '我们的小窝_备份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = '我们的小窝备份_' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
 }
 
 function importData(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const imported = JSON.parse(e.target.result);
-      if (confirm('确定要导入数据吗？这将覆盖当前所有数据。')) {
-        data = imported;
-        save();
-        applySettings();
-        renderAll();
-        showToast('数据导入成功！');
+      if (confirm('导入将覆盖当前数据，确定？')) {
+        data = JSON.parse(e.target.result);
+        save(); applySettings(); renderAll();
+        showToast('导入成功！');
       }
     } catch(err) { showToast('文件格式错误'); }
   };
-  reader.readAsText(file);
-  input.value = '';
+  reader.readAsText(file); input.value = '';
 }
 
 function clearAll() {
-  if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
-    if (confirm('再次确认：清除所有数据？')) {
-      localStorage.removeItem('couple_data');
-      location.reload();
-    }
+  if (confirm('确定清除所有数据？不可恢复！') && confirm('再次确认？')) {
+    localStorage.removeItem('couple_data'); location.reload();
   }
 }
 
-// ---- 渲染全部 ----
 function renderAll() {
-  renderHome();
-  renderDiaryList();
-  renderPhotoGrid();
-  renderAnniversaryList();
-  renderWishList();
+  renderHome(); renderDiaryList(); renderPhotoGrid(); renderAnniversaryList(); renderWishList();
 }
 </script>
 </body>
