@@ -540,12 +540,12 @@
       <div id="cloud-config" style="display:none;">
         <div class="form-group">
           <label class="form-label">JSONBin API Key</label>
-          <input type="text" id="cloud-api-key" placeholder="从 jsonbin.io 获取" onchange="saveCloudConfig()">
+          <input type="text" id="cloud-api-key" placeholder="从 jsonbin.io 获取" onchange="readCloudConfigFromUI()">
           <small style="color:#999;font-size:11px;">免费注册获取：<a href="https://jsonbin.io/register" target="_blank" style="color:#e91e63;">jsonbin.io</a></small>
         </div>
         <div class="form-group">
           <label class="form-label">Bin ID</label>
-          <input type="text" id="cloud-bin-id" placeholder="留空自动创建新的 Bin" onchange="saveCloudConfig()">
+          <input type="text" id="cloud-bin-id" placeholder="留空自动创建新的 Bin" onchange="readCloudConfigFromUI()">
         </div>
         <div style="display:flex;gap:10px;margin-top:12px;">
           <button class="btn-primary" onclick="syncToCloud()" id="sync-btn">同步到云端</button>
@@ -685,45 +685,68 @@
 const CLOUD_CONFIG_KEY = 'couple_cloud_config';
 const CLOUD_API = 'https://api.jsonbin.io/v3';
 
-let cloudConfig = {
+// 硬编码的默认配置（备用）
+const DEFAULT_CLOUD_CONFIG = {
   enabled: true,
   apiKey: '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq',
   binId: '69f5e3bd856a68218999db49'
 };
 
+let cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
+
+function saveCloudConfig() {
+  // 只保存 cloudConfig 对象，不读取输入框
+  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+
+  // 更新输入框显示
+  document.getElementById('cloud-api-key').value = cloudConfig.apiKey || '';
+  document.getElementById('cloud-bin-id').value = cloudConfig.binId || '';
+}
+
 function loadCloudConfig() {
+  // 先尝试从 localStorage 读取
   const s = localStorage.getItem(CLOUD_CONFIG_KEY);
   if (s) {
     try {
       const saved = JSON.parse(s);
-      // 如果本地有配置，但API Key为空，使用硬编码的默认值
-      if (!saved.apiKey && cloudConfig.apiKey) {
-        saved.apiKey = cloudConfig.apiKey;
-        saved.binId = saved.binId || cloudConfig.binId;
-        saved.enabled = true;
-      }
       cloudConfig = { ...cloudConfig, ...saved };
-    } catch(e) {}
+    } catch(e) {
+      // 解析失败，使用默认配置
+    }
   }
-  // 确保配置保存到本地
-  saveCloudConfig();
+
+  // 确保关键字段有值（回退到默认值）
+  if (!cloudConfig.apiKey) cloudConfig.apiKey = DEFAULT_CLOUD_CONFIG.apiKey;
+  if (!cloudConfig.binId) cloudConfig.binId = DEFAULT_CLOUD_CONFIG.binId;
+  if (cloudConfig.enabled === undefined) cloudConfig.enabled = DEFAULT_CLOUD_CONFIG.enabled;
+
+  // 保存到 localStorage（确保不丢失）
+  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+
+  // 更新界面
   document.getElementById('cloud-enabled').checked = cloudConfig.enabled;
-  document.getElementById('cloud-api-key').value = cloudConfig.apiKey || '';
-  document.getElementById('cloud-bin-id').value = cloudConfig.binId || '';
+  document.getElementById('cloud-api-key').value = cloudConfig.apiKey;
+  document.getElementById('cloud-bin-id').value = cloudConfig.binId;
   updateCloudUI();
 }
 
-function saveCloudConfig() {
-  cloudConfig.apiKey = document.getElementById('cloud-api-key').value.trim();
-  cloudConfig.binId = document.getElementById('cloud-bin-id').value.trim();
-  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+// 从输入框读取用户修改（在 onchange 和保存时调用）
+function readCloudConfigFromUI() {
+  const inputKey = document.getElementById('cloud-api-key').value.trim();
+  const inputBinId = document.getElementById('cloud-bin-id').value.trim();
+
+  // 用户有输入就用用户的，否则保持原值
+  if (inputKey) cloudConfig.apiKey = inputKey;
+  if (inputBinId) cloudConfig.binId = inputBinId;
+
+  saveCloudConfig();
 }
 
 function toggleCloudSync() {
   cloudConfig.enabled = document.getElementById('cloud-enabled').checked;
   saveCloudConfig();
   updateCloudUI();
-  if (cloudConfig.enabled && cloudConfig.apiKey) {
+  if (cloudConfig.enabled && cloudConfig.apiKey && cloudConfig.binId) {
     loadFromCloud();
   }
 }
@@ -776,7 +799,15 @@ function estimateSize(obj) {
   return new Blob([JSON.stringify(obj)]).size;
 }
 
+// 确保从UI读取最新配置
+function ensureCloudConfig() {
+  readCloudConfigFromUI();
+}
+
 async function syncToCloud() {
+  // 先读取UI上的最新配置
+  ensureCloudConfig();
+
   if (!cloudConfig.apiKey) {
     showToast('请先填写 API Key');
     return;
