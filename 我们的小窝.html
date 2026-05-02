@@ -761,16 +761,105 @@ function setSyncStatus(status, msg) {
 }
 
 // ---- 云端同步核心函数 ----
+const MAX_CLOUD_SIZE = 900 * 1024; // 900KB，留一些余量
+
+function estimateSize(obj) {
+  return new Blob([JSON.stringify(obj)]).size;
+}
+
 async function syncToCloud() {
   if (!cloudConfig.apiKey) {
     showToast('请先填写 API Key');
     return;
   }
+
+  // 检查数据大小
+  const textData = {
+    settings: data.settings,
+    diaries: data.diaries,
+    anniversaries: data.anniversaries,
+    wishlist: data.wishlist
+  };
+  const textSize = estimateSize(textData);
+  const totalSize = estimateSize(data);
+
+  if (totalSize > MAX_CLOUD_SIZE) {
+    // 数据太大，只同步文字内容，图片保留本地
+    if (data.photos.length > 0) {
+      if (!confirm('照片数据太大（' + (totalSize/1024).toFixed(0) + 'KB），无法同步到云端。\n\n是否只同步文字内容（日记、纪念日、心愿）？\n照片将只保存在本设备。')) {
+        setSyncStatus('error', '同步取消');
+        return;
+      }
+      // 只同步文字数据
+      const originalPhotos = data.photos;
+      data.photos = [];
+      syncTextOnly(textData, originalPhotos);
+      return;
+    }
+  }
+
+  doSync(data);
+}
+
+async function syncTextOnly(textData, originalPhotos) {
+  setSyncStatus('syncing', '同步文字中...');
+  document.getElementById('sync-message').textContent = '正在同步文字内容...';
+
+  try {
+    let binId = cloudConfig.binId;
+    let method = 'POST';
+    let url = CLOUD_API + '/b';
+    const payload = JSON.stringify(textData);
+
+    if (binId) {
+      method = 'PUT';
+      url = CLOUD_API + '/b/' + binId;
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Master-Key': cloudConfig.apiKey
+    };
+
+    const response = await fetch(url, {
+      method: method,
+      headers: headers,
+      body: payload
+    });
+
+    if (!response.ok) {
+      throw new Error('同步失败: ' + response.status);
+    }
+
+    const result = await response.json();
+    if (result.metadata && result.metadata.id && !cloudConfig.binId) {
+      cloudConfig.binId = result.metadata.id;
+      saveCloudConfig();
+      document.getElementById('cloud-bin-id').value = cloudConfig.binId;
+    }
+
+    // 恢复本地照片
+    data.photos = originalPhotos;
+    save();
+
+    showToast('文字内容同步成功！照片仅本机可见');
+    setSyncStatus('synced', '已同步(无照片)');
+    document.getElementById('sync-message').textContent = '文字同步成功 ' + new Date().toLocaleTimeString() + '（照片未同步）';
+  } catch (err) {
+    data.photos = originalPhotos;
+    console.error('Sync error:', err);
+    setSyncStatus('error', '同步失败');
+    document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
+    showToast('同步失败: ' + err.message);
+  }
+}
+
+async function doSync(payloadData) {
   setSyncStatus('syncing', '同步中...');
   document.getElementById('sync-message').textContent = '正在同步到云端...';
 
   try {
-    const payload = JSON.stringify(data);
+    const payload = JSON.stringify(payloadData);
     let binId = cloudConfig.binId;
     let method = 'POST';
     let url = CLOUD_API + '/b';
@@ -812,6 +901,58 @@ async function syncToCloud() {
     setSyncStatus('error', '同步失败');
     document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
     showToast('同步失败: ' + err.message);
+  }
+}
+
+async function loadFromCloud() {
+  if (!cloudConfig.apiKey) {
+    showToast('请先填写 API Key');
+    return;
+  }
+
+  if (!cloudConfig.binId) {
+    showToast('请先同步到云端创建存储');
+    return;
+  }
+
+  setSyncStatus('syncing', '加载中...');
+  document.getElementById('sync-message').textContent = '正在从云端加载...';
+
+  try {
+    const response = await fetch(CLOUD_API + '/b/' + cloudConfig.binId + '/latest', {
+      method: 'GET',
+      headers: {
+        'X-Master-Key': cloudConfig.apiKey
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('加载失败: ' + response.status);
+    }
+
+    const result = await response.json();
+    if (result.record) {
+      // 保留本地照片，合并云端文字数据
+      const localPhotos = data.photos;
+      data = result.record;
+
+      // 如果云端没有照片数据，保留本地照片
+      if (!data.photos || data.photos.length === 0) {
+        data.photos = localPhotos;
+      }
+
+      save();
+      applySettings();
+      renderAll();
+      showToast('从云端加载成功！');
+      setSyncStatus('synced', '已同步');
+      document.getElementById('sync-message').textContent = '加载成功 ' + new Date().toLocaleTimeString();
+    }
+  } catch (err) {
+    console.error('Load error:', err);
+    setSyncStatus('error', '加载失败');
+    document.getElementById('sync-message').textContent = '加载失败: ' + err.message;
+    showToast('加载失败: ' + err.message);
   }
 }
 
@@ -1047,22 +1188,69 @@ function showDiaryDetail(id) {
 }
 
 // ---- 相册 ----
-function addPhotos(input) {
-  const files = Array.from(input.files);
-  let loaded = 0;
-  files.forEach(file => {
+function compressImage(file, maxWidth = 1200, quality = 0.7) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
-      data.photos.push({ id: Date.now().toString() + Math.random(), src: e.target.result, name: file.name, date: new Date().toISOString().slice(0,10) });
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function addPhotos(input) {
+  const files = Array.from(input.files);
+  if (files.length === 0) return;
+
+  showToast('正在压缩 ' + files.length + ' 张照片...');
+  let loaded = 0;
+  let hasError = false;
+
+  files.forEach(file => {
+    compressImage(file, 1200, 0.6).then(compressedDataUrl => {
+      data.photos.push({
+        id: Date.now().toString() + Math.random(),
+        src: compressedDataUrl,
+        name: file.name,
+        date: new Date().toISOString().slice(0,10)
+      });
+      loaded++;
+      if (loaded === files.length) {
+        if (!hasError) {
+          save();
+          renderPhotoGrid();
+          renderHome();
+          showToast('成功添加 ' + files.length + ' 张照片');
+        }
+      }
+    }).catch(err => {
+      console.error('图片处理失败:', err);
+      hasError = true;
       loaded++;
       if (loaded === files.length) {
         save();
         renderPhotoGrid();
         renderHome();
-        showToast('添加了 ' + files.length + ' 张照片');
+        showToast('部分照片添加失败，请重试');
       }
-    };
-    reader.readAsDataURL(file);
+    });
   });
   input.value = '';
 }
