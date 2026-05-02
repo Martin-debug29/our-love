@@ -695,9 +695,18 @@ function loadCloudConfig() {
   const s = localStorage.getItem(CLOUD_CONFIG_KEY);
   if (s) {
     try {
-      cloudConfig = JSON.parse(s);
+      const saved = JSON.parse(s);
+      // 如果本地有配置，但API Key为空，使用硬编码的默认值
+      if (!saved.apiKey && cloudConfig.apiKey) {
+        saved.apiKey = cloudConfig.apiKey;
+        saved.binId = saved.binId || cloudConfig.binId;
+        saved.enabled = true;
+      }
+      cloudConfig = { ...cloudConfig, ...saved };
     } catch(e) {}
   }
+  // 确保配置保存到本地
+  saveCloudConfig();
   document.getElementById('cloud-enabled').checked = cloudConfig.enabled;
   document.getElementById('cloud-api-key').value = cloudConfig.apiKey || '';
   document.getElementById('cloud-bin-id').value = cloudConfig.binId || '';
@@ -881,7 +890,9 @@ async function doSync(payloadData) {
     });
 
     if (!response.ok) {
-      throw new Error('同步失败: ' + response.status);
+      const errorText = await response.text();
+      console.error('同步失败详情:', response.status, errorText);
+      throw new Error('同步失败: ' + response.status + ' - ' + (errorText || '无详细信息'));
     }
 
     const result = await response.json();
@@ -899,8 +910,15 @@ async function doSync(payloadData) {
   } catch (err) {
     console.error('Sync error:', err);
     setSyncStatus('error', '同步失败');
-    document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
-    showToast('同步失败: ' + err.message);
+    // 更友好的错误提示
+    let msg = err.message;
+    if (err.message.includes('403')) {
+      msg = '403错误：可能是网络限制，请检查是否在公司/校园网，或尝试切换WiFi/4G';
+    } else if (err.message.includes('Failed to fetch')) {
+      msg = '网络错误：无法连接到服务器，请检查网络连接';
+    }
+    document.getElementById('sync-message').textContent = msg;
+    showToast(msg);
   }
 }
 
