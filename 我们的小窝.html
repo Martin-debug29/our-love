@@ -20,6 +20,11 @@
   }
   .header-title { font-size: 22px; font-weight: 600; color: #e91e63; letter-spacing: 2px; }
   .header-date { font-size: 13px; color: #aaa; }
+  .sync-status { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+  .sync-status.synced { background: #e8f5e9; color: #4caf50; }
+  .sync-status.syncing { background: #fff3e0; color: #ff9800; }
+  .sync-status.error { background: #ffebee; color: #f44336; }
+  .sync-status.offline { background: #f5f5f5; color: #999; }
 
   /* 导航 */
   .nav {
@@ -64,7 +69,7 @@
     text-align: center;
     padding: 32px 0;
   }
-  .love-counter .days {
+  .love-counter .days
     font-size: 72px;
     font-weight: 600;
     color: #e91e63;
@@ -161,6 +166,7 @@
     font-family: inherit;
   }
   .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-danger {
     background: #fff;
     color: #e91e63;
@@ -168,6 +174,16 @@
     padding: 6px 16px;
     border-radius: 20px;
     font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-secondary {
+    background: #fce4ec;
+    color: #e91e63;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 14px;
     cursor: pointer;
     font-family: inherit;
   }
@@ -308,6 +324,62 @@
   /* 心形装饰 */
   .heart { color: #e91e63; }
 
+  /* 提示框 */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 2000;
+    transition: opacity 0.3s;
+  }
+  .toast.hide { opacity: 0; pointer-events: none; }
+
+  /* 同步指示器 */
+  .cloud-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 28px;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #ccc;
+    transition: 0.3s;
+    border-radius: 28px;
+  }
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #e91e63; }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
+  .cloud-info { font-size: 13px; color: #666; flex: 1; }
+  .cloud-info strong { color: #e91e63; }
+
   @media (max-width: 600px) {
     .header { padding: 16px; }
     .nav { padding: 8px 12px; }
@@ -321,7 +393,10 @@
 
 <div class="header">
   <div class="header-title" id="site-title">我们的小窝</div>
-  <div class="header-date" id="today-date"></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="sync-status offline" id="sync-status">本地模式</div>
+    <div class="header-date" id="today-date"></div>
+  </div>
 </div>
 
 <div class="nav">
@@ -342,7 +417,7 @@
         <div class="names" id="home-names">❤ 你和我 ❤</div>
         <div class="days" id="love-days">0</div>
         <div class="days-label">在一起的第 <span id="love-days2">0</span> 天</div>
-        <div class="detail" id="love-detail">从 <span id="start-date-display">未设置</span> 起</div>
+        <div class="detail">从 <span id="start-date-display">未设置</span> 起</div>
       </div>
     </div>
 
@@ -447,6 +522,39 @@
       </div>
       <button class="btn-primary" onclick="saveSettings()">保存设置</button>
     </div>
+
+    <!-- 云同步设置 -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">☁️ 云端同步</div>
+      <div class="cloud-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="cloud-enabled" onchange="toggleCloudSync()">
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="cloud-info">
+          <strong id="cloud-status-text">云同步已关闭</strong><br>
+          <span id="cloud-desc-text">开启后，数据将在多设备间同步</span>
+        </div>
+      </div>
+
+      <div id="cloud-config" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">JSONBin API Key</label>
+          <input type="text" id="cloud-api-key" placeholder="从 jsonbin.io 获取" onchange="saveCloudConfig()">
+          <small style="color:#999;font-size:11px;">免费注册获取：<a href="https://jsonbin.io/register" target="_blank" style="color:#e91e63;">jsonbin.io</a></small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bin ID</label>
+          <input type="text" id="cloud-bin-id" placeholder="留空自动创建新的 Bin" onchange="saveCloudConfig()">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button class="btn-primary" onclick="syncToCloud()" id="sync-btn">同步到云端</button>
+          <button class="btn-secondary" onclick="loadFromCloud()">从云端加载</button>
+        </div>
+        <div id="sync-message" style="margin-top:12px;font-size:13px;color:#666;"></div>
+      </div>
+    </div>
+
     <div class="card" style="margin-top:16px;">
       <div class="card-title">数据管理</div>
       <div class="setting-item">
@@ -569,7 +677,188 @@
   </div>
 </div>
 
+<!-- Toast 提示 -->
+<div class="toast hide" id="toast"></div>
+
 <script>
+// ---- 云同步配置 ----
+const CLOUD_CONFIG_KEY = 'couple_cloud_config';
+const CLOUD_API = 'https://api.jsonbin.io/v3';
+
+let cloudConfig = {
+  enabled: true,
+  apiKey: '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq',
+  binId: '69f5e3bd856a68218999db49'
+};
+
+function loadCloudConfig() {
+  const s = localStorage.getItem(CLOUD_CONFIG_KEY);
+  if (s) {
+    try {
+      cloudConfig = JSON.parse(s);
+    } catch(e) {}
+  }
+  document.getElementById('cloud-enabled').checked = cloudConfig.enabled;
+  document.getElementById('cloud-api-key').value = cloudConfig.apiKey || '';
+  document.getElementById('cloud-bin-id').value = cloudConfig.binId || '';
+  updateCloudUI();
+}
+
+function saveCloudConfig() {
+  cloudConfig.apiKey = document.getElementById('cloud-api-key').value.trim();
+  cloudConfig.binId = document.getElementById('cloud-bin-id').value.trim();
+  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+}
+
+function toggleCloudSync() {
+  cloudConfig.enabled = document.getElementById('cloud-enabled').checked;
+  saveCloudConfig();
+  updateCloudUI();
+  if (cloudConfig.enabled && cloudConfig.apiKey) {
+    loadFromCloud();
+  }
+}
+
+function updateCloudUI() {
+  const configDiv = document.getElementById('cloud-config');
+  const statusText = document.getElementById('cloud-status-text');
+  const descText = document.getElementById('cloud-desc-text');
+  const syncStatus = document.getElementById('sync-status');
+
+  if (cloudConfig.enabled) {
+    configDiv.style.display = 'block';
+    if (cloudConfig.apiKey) {
+      statusText.textContent = '云同步已开启';
+      descText.textContent = '数据将在保存时自动同步到云端';
+      syncStatus.className = 'sync-status synced';
+      syncStatus.textContent = '已同步';
+    } else {
+      statusText.textContent = '请配置 API Key';
+      descText.textContent = '填写 JSONBin API Key 开启同步';
+      syncStatus.className = 'sync-status error';
+      syncStatus.textContent = '待配置';
+    }
+  } else {
+    configDiv.style.display = 'none';
+    statusText.textContent = '云同步已关闭';
+    descText.textContent = '开启后，数据将在多设备间同步';
+    syncStatus.className = 'sync-status offline';
+    syncStatus.textContent = '本地模式';
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.remove('hide');
+  setTimeout(() => toast.classList.add('hide'), 2500);
+}
+
+function setSyncStatus(status, msg) {
+  const el = document.getElementById('sync-status');
+  el.className = 'sync-status ' + status;
+  if (msg) el.textContent = msg;
+}
+
+// ---- 云端同步核心函数 ----
+async function syncToCloud() {
+  if (!cloudConfig.apiKey) {
+    showToast('请先填写 API Key');
+    return;
+  }
+  setSyncStatus('syncing', '同步中...');
+  document.getElementById('sync-message').textContent = '正在同步到云端...';
+
+  try {
+    const payload = JSON.stringify(data);
+    let binId = cloudConfig.binId;
+    let method = 'POST';
+    let url = CLOUD_API + '/b';
+
+    if (binId) {
+      method = 'PUT';
+      url = CLOUD_API + '/b/' + binId;
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Master-Key': cloudConfig.apiKey
+    };
+
+    const response = await fetch(url, {
+      method: method,
+      headers: headers,
+      body: payload
+    });
+
+    if (!response.ok) {
+      throw new Error('同步失败: ' + response.status);
+    }
+
+    const result = await response.json();
+    if (result.metadata && result.metadata.id && !cloudConfig.binId) {
+      cloudConfig.binId = result.metadata.id;
+      saveCloudConfig();
+      document.getElementById('cloud-bin-id').value = cloudConfig.binId;
+      showToast('已创建新的云端存储');
+    } else {
+      showToast('同步成功！');
+    }
+
+    setSyncStatus('synced', '已同步');
+    document.getElementById('sync-message').textContent = '同步成功 ' + new Date().toLocaleTimeString();
+  } catch (err) {
+    console.error('Sync error:', err);
+    setSyncStatus('error', '同步失败');
+    document.getElementById('sync-message').textContent = '同步失败: ' + err.message;
+    showToast('同步失败: ' + err.message);
+  }
+}
+
+async function loadFromCloud() {
+  if (!cloudConfig.apiKey) {
+    showToast('请先填写 API Key');
+    return;
+  }
+
+  if (!cloudConfig.binId) {
+    showToast('请先同步到云端创建存储');
+    return;
+  }
+
+  setSyncStatus('syncing', '加载中...');
+  document.getElementById('sync-message').textContent = '正在从云端加载...';
+
+  try {
+    const response = await fetch(CLOUD_API + '/b/' + cloudConfig.binId + '/latest', {
+      method: 'GET',
+      headers: {
+        'X-Master-Key': cloudConfig.apiKey
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('加载失败: ' + response.status);
+    }
+
+    const result = await response.json();
+    if (result.record) {
+      data = result.record;
+      save();
+      applySettings();
+      renderAll();
+      showToast('从云端加载成功！');
+      setSyncStatus('synced', '已同步');
+      document.getElementById('sync-message').textContent = '加载成功 ' + new Date().toLocaleTimeString();
+    }
+  } catch (err) {
+    console.error('Load error:', err);
+    setSyncStatus('error', '加载失败');
+    document.getElementById('sync-message').textContent = '加载失败: ' + err.message;
+    showToast('加载失败: ' + err.message);
+  }
+}
+
 // ---- 数据存储 ----
 let data = {
   settings: { title: '我们的小窝', name1: '', name2: '', startDate: '' },
@@ -581,7 +870,12 @@ let data = {
 
 function save() {
   localStorage.setItem('couple_data', JSON.stringify(data));
+  // 自动同步到云端
+  if (cloudConfig.enabled && cloudConfig.apiKey) {
+    syncToCloud();
+  }
 }
+
 function load() {
   const s = localStorage.getItem('couple_data');
   if (s) {
@@ -590,16 +884,21 @@ function load() {
 }
 
 // ---- 初始化 ----
+loadCloudConfig();
 load();
 applySettings();
 renderAll();
 setTodayDate();
 
+// 如果已开启云同步，自动加载最新数据
+if (cloudConfig.enabled && cloudConfig.apiKey && cloudConfig.binId) {
+  loadFromCloud();
+}
+
 function setTodayDate() {
   const now = new Date();
   const s = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
   document.getElementById('today-date').textContent = s;
-  // 设置今天为日记默认日期
   const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
   document.getElementById('diary-date-input').value = y+'-'+m+'-'+d;
 }
@@ -646,13 +945,11 @@ function renderHome() {
   const n2 = data.settings.name2 || '我';
   document.getElementById('home-names').textContent = '❤ ' + n1 + ' & ' + n2 + ' ❤';
 
-  // 统计
   document.getElementById('stat-diary').textContent = data.diaries.length;
   document.getElementById('stat-photo').textContent = data.photos.length;
   document.getElementById('stat-wish-done').textContent = data.wishlist.filter(w=>w.done).length;
   document.getElementById('stat-ann').textContent = data.anniversaries.length;
 
-  // 最近日记
   const recentDiaries = [...data.diaries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
   const rdEl = document.getElementById('home-recent-diary');
   if (recentDiaries.length === 0) {
@@ -668,7 +965,6 @@ function renderHome() {
     `).join('');
   }
 
-  // 即将到来的纪念日
   const today = new Date();
   today.setHours(0,0,0,0);
   const anns = data.anniversaries.map(a => {
@@ -710,6 +1006,7 @@ function saveDiary() {
   document.getElementById('diary-content-input').value = '';
   renderDiaryList();
   renderHome();
+  showToast('日记已保存');
 }
 
 function renderDiaryList() {
@@ -752,13 +1049,18 @@ function showDiaryDetail(id) {
 // ---- 相册 ----
 function addPhotos(input) {
   const files = Array.from(input.files);
+  let loaded = 0;
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = e => {
       data.photos.push({ id: Date.now().toString() + Math.random(), src: e.target.result, name: file.name, date: new Date().toISOString().slice(0,10) });
-      save();
-      renderPhotoGrid();
-      renderHome();
+      loaded++;
+      if (loaded === files.length) {
+        save();
+        renderPhotoGrid();
+        renderHome();
+        showToast('添加了 ' + files.length + ' 张照片');
+      }
     };
     reader.readAsDataURL(file);
   });
@@ -801,6 +1103,7 @@ function saveAnniversary() {
   document.getElementById('ann-note-input').value = '';
   renderAnniversaryList();
   renderHome();
+  showToast('纪念日已添加');
 }
 
 function renderAnniversaryList() {
@@ -850,6 +1153,7 @@ function saveWish() {
   document.getElementById('wish-text-input').value = '';
   renderWishList();
   renderHome();
+  showToast('心愿已添加');
 }
 
 function toggleWish(id) {
@@ -909,7 +1213,7 @@ function saveSettings() {
   save();
   applySettings();
   renderHome();
-  alert('设置已保存～');
+  showToast('设置已保存');
 }
 
 // ---- 数据导出/导入 ----
@@ -934,9 +1238,9 @@ function importData(input) {
         save();
         applySettings();
         renderAll();
-        alert('数据导入成功！');
+        showToast('数据导入成功！');
       }
-    } catch(err) { alert('文件格式错误，请选择正确的备份文件。'); }
+    } catch(err) { showToast('文件格式错误'); }
   };
   reader.readAsText(file);
   input.value = '';
