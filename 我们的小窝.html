@@ -223,13 +223,19 @@
     </div>
     
     <div class="setting-section">
-      <div class="setting-title">☁️ 云端同步</div>
+      <div class="setting-title">☁️ 云端同步（阿里云OSS）</div>
       <div class="cloud-toggle">
         <div class="toggle on" id="auto-sync-btn" onclick="toggleAutoSync()"></div>
         <div><div style="font-size:14px;color:#333;">自动同步</div><div style="font-size:12px;color:#999;">保存时自动同步到云端</div></div>
       </div>
-      <div class="form-group"><label class="form-label">API Key</label><input type="text" id="cloud-key" placeholder="JSONBin API Key"></div>
-      <div class="form-group"><label class="form-label">Bin ID</label><input type="text" id="cloud-bin" placeholder="同步后自动填充"></div>
+      <div class="form-group"><label class="form-label">Bucket 名称</label><input type="text" id="cloud-bin" placeholder="martinleo" value="martinleo"></div>
+      <div class="form-group"><label class="form-label">Region</label><select id="cloud-region">
+        <option value="oss-cn-hangzhou">华东1（杭州）</option>
+        <option value="oss-cn-shanghai" selected>华东2（上海）</option>
+        <option value="oss-cn-beijing">华北2（北京）</option>
+        <option value="oss-cn-shenzhen">华南1（深圳）</option>
+        <option value="oss-cn-hongkong">香港</option>
+      </select></div>
       <div class="cloud-actions">
         <button class="btn btn-small" onclick="doCloudSync()" style="flex:1;">☁️ 同步到云端</button>
         <button class="btn btn-outline btn-small" onclick="doCloudLoad()" style="flex:1;">📥 从云端加载</button>
@@ -346,20 +352,27 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ 云端配置 ============
+// ============ 阿里云 OSS 配置（公共读写，无需签名）============
 var cloudCfg = {
-  apiKey: '$2a$10$ddYMKOITk/Jwo8TOLiCJmeM3b.NxOKhk0j0ZdboR1sgr5q4nTEtnq',
-  binId: '69f5e3bd856a68218999db49',
+  bucket: 'martinleo',  // Bucket名称
+  region: 'oss-cn-shanghai', // Region
+  objectKey: 'wodexiaowo-data.json', // 数据文件名
+  endpoint: '',
   autoSync: true
 };
+
+// 初始化 endpoint
+(function initOSS() {
+  cloudCfg.endpoint = 'https://' + cloudCfg.bucket + '.' + cloudCfg.region + '.aliyuncs.com';
+})();
 
 // ============ 网络状态管理 ============
 var networkState = {
   isOnline: navigator.onLine,
-  pendingSync: false,    // 是否有待同步数据
-  syncInProgress: false, // 是否正在同步
-  retryCount: 0,         // 当前重试次数
-  maxRetries: 3          // 最大重试次数
+  pendingSync: false,
+  syncInProgress: false,
+  retryCount: 0,
+  maxRetries: 3
 };
 
 // ============ 初始化 ============
@@ -374,8 +387,11 @@ var networkState = {
   if (savedCloud) {
     try { 
       var tmp = JSON.parse(savedCloud);
-      if (tmp.apiKey) cloudCfg.apiKey = tmp.apiKey;
-      if (tmp.binId) cloudCfg.binId = tmp.binId;
+      if (tmp.accessKeyId) cloudCfg.accessKeyId = tmp.accessKeyId;
+      if (tmp.accessKeySecret) cloudCfg.accessKeySecret = tmp.accessKeySecret;
+      if (tmp.bucket) cloudCfg.bucket = tmp.bucket;
+      if (tmp.region) cloudCfg.region = tmp.region;
+      if (tmp.objectKey) cloudCfg.objectKey = tmp.objectKey || 'wodexiaowo-data.json';
       if (typeof tmp.autoSync === 'boolean') cloudCfg.autoSync = tmp.autoSync;
     } catch(e) {}
   }
@@ -385,8 +401,12 @@ var networkState = {
   $('set-name1').value = appData.settings.name1 || '';
   $('set-name2').value = appData.settings.name2 || '';
   $('set-start-date').value = appData.settings.startDate || '';
-  $('cloud-key').value = cloudCfg.apiKey;
-  $('cloud-bin').value = cloudCfg.binId;
+  
+  // 填充云端配置
+  $('cloud-bin').value = cloudCfg.bucket || 'martinleo';
+  if (cloudCfg.region && $('cloud-region')) {
+    $('cloud-region').value = cloudCfg.region;
+  }
   
   // 自动同步开关
   updateAutoSyncUI();
@@ -401,8 +421,8 @@ var networkState = {
   // 设置网络监听
   setupNetworkListeners();
   
-  // 自动从云端加载最新数据（如果存在）
-  autoLoadFromCloud();
+  // 自动从云端加载
+  autoLoadFromOSS();
 })();
 
 // ============ 网络状态监听 ============
@@ -412,14 +432,12 @@ function setupNetworkListeners() {
     networkState.isOnline = true;
     updateSyncStatus('syncing', '恢复连接...');
     
-    // 延迟一下再同步，等网络稳定
     setTimeout(function() {
       if (networkState.pendingSync) {
         console.log('📤 同步待处理的更改...');
         cloudSyncSilent();
       } else {
-        // 没有待同步数据，尝试从云端获取最新
-        autoLoadFromCloud();
+        autoLoadFromOSS();
       }
     }, 1500);
   });
@@ -431,22 +449,20 @@ function setupNetworkListeners() {
   });
 }
 
-// ============ 智能请求函数（带超时和重试）============
+// ============ 智能请求（带超时重试）============
 function smartRequest(options) {
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
-    var timeout = options.timeout || 20000; // 默认20秒超时
+    var timeout = options.timeout || 25000;
     var retries = 0;
     var maxRetries = options.retries || 3;
     
     function attempt() {
-      xhr.abort(); // 取消之前的请求
+      xhr.abort();
       xhr = new XMLHttpRequest();
       
       xhr.open(options.method || 'GET', options.url, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
       
-      // 添加自定义头
       if (options.headers) {
         Object.keys(options.headers).forEach(function(key) {
           xhr.setRequestHeader(key, options.headers[key]);
@@ -458,38 +474,36 @@ function smartRequest(options) {
       xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            resolve(JSON.parse(xhr.responseText));
+            if (xhr.responseText) {
+              resolve(JSON.parse(xhr.responseText));
+            } else {
+              resolve(null);
+            }
           } catch(e) {
             resolve(xhr.responseText);
           }
-        } else if (xhr.status === 404 && options.method === 'GET') {
-          resolve(null); // 资源不存在
+        } else if (xhr.status === 404) {
+          resolve(null);
         } else {
-          reject({ type: 'http', status: xhr.status, message: getHttpErrorMsg(xhr.status) });
+          reject({ type: 'http', status: xhr.status, message: '错误 ' + xhr.status });
         }
       };
       
       xhr.ontimeout = function() {
         retries++;
-        console.log('⏱️ 请求超时 (尝试 ' + retries + '/' + maxRetries + ')');
-        
+        console.log('⏱️ 超时 (尝试 ' + retries + '/' + maxRetries + ')');
         if (retries < maxRetries) {
-          // 指数退避: 1s, 2s, 4s
-          var delay = Math.pow(2, retries - 1) * 1000;
-          console.log('🔄 ' + (delay/1000) + '秒后重试...');
-          setTimeout(attempt, delay);
+          setTimeout(attempt, Math.pow(2, retries) * 1000);
         } else {
-          reject({ type: 'timeout', message: '请求超时，请检查网络连接' });
+          reject({ type: 'timeout', message: '请求超时' });
         }
       };
       
       xhr.onerror = function() {
         retries++;
         console.log('❌ 网络错误 (尝试 ' + retries + '/' + maxRetries + ')');
-        
         if (retries < maxRetries) {
-          var delay = Math.pow(2, retries - 1) * 1000;
-          setTimeout(attempt, delay);
+          setTimeout(attempt, Math.pow(2, retries) * 1000);
         } else {
           reject({ type: 'network', message: '网络连接失败' });
         }
@@ -502,20 +516,9 @@ function smartRequest(options) {
   });
 }
 
-function getHttpErrorMsg(status) {
-  var msgs = {
-    400: '请求格式错误',
-    401: 'API Key无效',
-    403: '权限不足，请检查API Key',
-    404: 'Bin不存在',
-    429: '请求过于频繁，请稍后再试'
-  };
-  return msgs[status] || '错误 ' + status;
-}
-
-// ============ 自动从云端加载（带重试）============
-function autoLoadFromCloud() {
-  if (!cloudCfg.apiKey || !cloudCfg.binId) {
+// ============ 从OSS加载数据 ============
+function autoLoadFromOSS() {
+  if (!cloudCfg.accessKeyId || !cloudCfg.bucket) {
     updateSyncStatus('idle', '未配置');
     return;
   }
@@ -527,21 +530,20 @@ function autoLoadFromCloud() {
   
   updateSyncStatus('syncing', '检查中...');
   
+  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
+  
   smartRequest({
     method: 'GET',
-    url: 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId + '/latest',
-    headers: { 'X-Master-Key': cloudCfg.apiKey },
+    url: url,
     timeout: 20000,
     retries: 3
   }).then(function(res) {
-    if (res && res.record) {
-      // 云端有数据，检查是否需要更新本地
-      var cloudTime = res.record._syncTime || 0;
+    if (res) {
+      var cloudTime = res._syncTime || 0;
       var localTime = appData._syncTime || 0;
       
       if (cloudTime > localTime) {
-        // 云端更新，覆盖本地
-        appData = res.record;
+        appData = res;
         saveLocal();
         
         $('set-title').value = appData.settings.title || '我们的小窝';
@@ -553,12 +555,10 @@ function autoLoadFromCloud() {
         updateSyncStatus('synced', '已同步');
         showToast('已同步云端数据 ✓');
       } else {
-        // 本地更新，需要上传到云端
         updateSyncStatus('syncing', '上传中...');
         cloudSyncSilent();
       }
     } else {
-      // Bin为空，上传本地数据
       cloudSyncSilent();
     }
   }).catch(function(err) {
@@ -567,12 +567,13 @@ function autoLoadFromCloud() {
   });
 }
 
-// ============ 静默同步到云端（带重试）============
+// ============ 同步到OSS（公共读写，无需签名）============
 function cloudSyncSilent() {
-  if (!cloudCfg.apiKey || !cloudCfg.binId) return;
+  if (!cloudCfg.bucket) return;
+  
   if (!navigator.onLine) {
     networkState.pendingSync = true;
-    saveLocal(); // 仍然保存本地
+    saveLocal();
     updateSyncStatus('pending', '待同步');
     return;
   }
@@ -588,34 +589,29 @@ function cloudSyncSilent() {
   updateSyncStatus('syncing', '同步中...');
   
   appData._syncTime = Date.now();
+  var jsonData = JSON.stringify(appData);
+  
+  // 公共读写，直接 PUT
+  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
   
   smartRequest({
     method: 'PUT',
-    url: 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId,
-    headers: { 'X-Master-Key': cloudCfg.apiKey },
-    body: JSON.stringify(appData),
+    url: url,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: jsonData,
     timeout: 25000,
     retries: 3
   }).then(function(res) {
     networkState.syncInProgress = false;
     networkState.retryCount = 0;
-    
-    if (res && res.metadata) {
-      // 更新Bin ID（如果变了）
-      if (res.metadata.id && res.metadata.id !== cloudCfg.binId) {
-        cloudCfg.binId = res.metadata.id;
-        $('cloud-bin').value = cloudCfg.binId;
-        saveLocal();
-      }
-    }
-    
     updateSyncStatus('synced', '已同步');
     console.log('✅ 同步成功');
   }).catch(function(err) {
     networkState.syncInProgress = false;
     console.log('❌ 同步失败:', err.message);
     
-    // 网络相关错误，标记为待同步
     if (err.type === 'timeout' || err.type === 'network') {
       networkState.pendingSync = true;
       updateSyncStatus('pending', '待同步');
@@ -644,7 +640,7 @@ function saveAndSync() {
   if (!saveLocal()) return false;
   
   // 自动同步（静默）
-  if (cloudCfg.autoSync && cloudCfg.apiKey && cloudCfg.binId) {
+  if (cloudCfg.autoSync && cloudCfg.bucket) {
     if (navigator.onLine) {
       cloudSyncSilent();
     } else {
@@ -1367,8 +1363,10 @@ function doSaveSettings() {
   appData.settings.name2 = $('set-name2').value;
   appData.settings.startDate = $('set-start-date').value;
   
-  cloudCfg.apiKey = $('cloud-key').value;
-  cloudCfg.binId = $('cloud-bin').value;
+  // 保存阿里云OSS配置
+  cloudCfg.bucket = $('cloud-bin').value.trim() || 'martinleo';
+  cloudCfg.region = $('cloud-region').value;
+  cloudCfg.endpoint = 'https://' + cloudCfg.bucket + '.' + cloudCfg.region + '.aliyuncs.com';
   
   if (saveLocal()) {
     renderHome();
@@ -1376,8 +1374,8 @@ function doSaveSettings() {
     setTimeout(function() { $('save-msg').innerHTML = ''; }, 2000);
     
     // 如果开启自动同步，则同步
-    if (cloudCfg.autoSync && cloudCfg.apiKey && cloudCfg.binId) {
-      cloudSync(true);
+    if (cloudCfg.autoSync && cloudCfg.bucket) {
+      cloudSyncSilent();
     }
   }
 }
@@ -1397,72 +1395,61 @@ function updateAutoSyncUI() {
   }
 }
 
-// ============ 云同步（手动版，带重试）============
-function cloudSync(silent) {
-  if (!cloudCfg.apiKey || !cloudCfg.binId) {
-    if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写API Key和Bin ID</div>';
-    }
+// ============ 云同步（手动版，阿里云OSS）============
+function cloudSync() {
+  if (!cloudCfg.bucket) {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写Bucket配置</div>';
     return;
   }
   
   if (!navigator.onLine) {
-    if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">当前离线，已保存到本地</div>';
-    }
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">当前离线，已保存到本地</div>';
     updateSyncStatus('offline', '离线');
     return;
   }
   
-  if (!silent) {
-    $('cloud-msg').innerHTML = '<div class="msg msg-loading">同步中...</div>';
-  }
+  $('cloud-msg').innerHTML = '<div class="msg msg-loading">同步中...</div>';
   updateSyncStatus('syncing', '同步中...');
   
   appData._syncTime = Date.now();
+  var jsonData = JSON.stringify(appData);
+  
+  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
   
   smartRequest({
     method: 'PUT',
-    url: 'https://api.jsonbin.io/v3/b/' + cloudCfg.binId,
-    headers: { 'X-Master-Key': cloudCfg.apiKey },
-    body: JSON.stringify(appData),
+    url: url,
+    headers: { 'Content-Type': 'application/json' },
+    body: jsonData,
     timeout: 25000,
     retries: 3
   }).then(function(res) {
-    if (res && res.metadata && res.metadata.id && res.metadata.id !== cloudCfg.binId) {
-      cloudCfg.binId = res.metadata.id;
-      $('cloud-bin').value = cloudCfg.binId;
-      saveLocal();
-    }
-    
-    if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 同步成功 ' + new Date().toLocaleTimeString() + '</div>';
-    }
+    $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 同步成功 ' + new Date().toLocaleTimeString() + '</div>';
     updateSyncStatus('synced', '已同步');
-    if (!silent) showToast('同步成功 ✓');
+    showToast('同步成功 ✓');
   }).catch(function(err) {
     console.log('同步失败:', err.message);
-    if (!silent) {
-      $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ ' + err.message + '</div>';
-    }
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">✗ ' + err.message + '</div>';
     updateSyncStatus('error', '同步失败');
-    if (!silent) showToast('同步失败: ' + err.message);
+    showToast('同步失败: ' + err.message);
   });
 }
 
 function doCloudSync() {
-  cloudCfg.apiKey = $('cloud-key').value.trim();
-  cloudCfg.binId = $('cloud-bin').value.trim();
+  cloudCfg.bucket = $('cloud-bin').value.trim();
+  cloudCfg.region = $('cloud-region').value;
+  cloudCfg.endpoint = 'https://' + cloudCfg.bucket + '.' + cloudCfg.region + '.aliyuncs.com';
+  
   saveLocal();
-  cloudSync(false);
+  cloudSync();
 }
 
 function doCloudLoad() {
-  var k = $('cloud-key').value.trim();
-  var b = $('cloud-bin').value.trim();
+  var bucket = $('cloud-bin').value.trim();
+  var region = $('cloud-region').value;
   
-  if (!k || !b) {
-    $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写API Key和Bin ID</div>';
+  if (!bucket) {
+    $('cloud-msg').innerHTML = '<div class="msg msg-error">请先填写Bucket配置</div>';
     return;
   }
   
@@ -1472,22 +1459,25 @@ function doCloudLoad() {
     return;
   }
   
-  cloudCfg.apiKey = k;
-  cloudCfg.binId = b;
+  cloudCfg.bucket = bucket;
+  cloudCfg.region = region;
+  cloudCfg.endpoint = 'https://' + bucket + '.' + region + '.aliyuncs.com';
+  
   saveLocal();
   
   $('cloud-msg').innerHTML = '<div class="msg msg-loading">加载中...</div>';
   updateSyncStatus('syncing', '加载中...');
   
+  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
+  
   smartRequest({
     method: 'GET',
-    url: 'https://api.jsonbin.io/v3/b/' + b + '/latest',
-    headers: { 'X-Master-Key': k },
+    url: url,
     timeout: 20000,
     retries: 3
   }).then(function(res) {
-    if (res && res.record) {
-      appData = res.record;
+    if (res) {
+      appData = res;
       saveLocal();
       
       $('set-title').value = appData.settings.title || '我们的小窝';
