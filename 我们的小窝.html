@@ -10,7 +10,8 @@
   
   .header { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .header-title { font-size: 20px; font-weight: 600; color: #e91e63; }
-  .sync-status { font-size: 12px; padding: 4px 10px; border-radius: 12px; transition: all 0.3s; }
+  .sync-status { font-size: 12px; padding: 4px 10px; border-radius: 12px; transition: all 0.3s; cursor: pointer; user-select: none; }
+  .sync-status:hover { opacity: 0.85; }
   
   .nav { background: #fff; padding: 10px 20px; display: flex; gap: 6px; overflow-x: auto; }
   .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; background: #f5f5f5; color: #666; font-size: 14px; cursor: pointer; white-space: nowrap; }
@@ -139,13 +140,123 @@
   .reply-input:focus { border-color: #e91e63; outline: none; }
   .reply-submit { margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px; }
   .diary-actions-bar { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+
+  /* 浮动按钮 */
+  .fab-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e91e63, #f06292);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    will-change: transform;
+    padding: 0;
+    line-height: 1;
+  }
+  .fab-btn:active { transform: scale(0.92); }
+  .fab-btn.open {
+    transform: rotate(0deg);
+    box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+  }
+  .fab-btn svg { display: block; }
+  /* 睁眼/闭眼动画 */
+  .fab-btn .eye-open,
+  .fab-btn .eye-closed,
+  .fab-btn .zzz { transition: opacity 0.35s ease; }
+  /* 眼珠跟随拖拽过渡 */
+  #pupil-l, #pupil-r { transition: cx 0.1s ease-out, cy 0.1s ease-out; }
+  /* 睁眼 */
+  .fab-btn.open .eye-open { opacity: 1; }
+  .fab-btn.open .eye-closed { opacity: 0; }
+  .fab-btn.open .zzz { opacity: 0; }
+  /* 闭眼（默认） */
+  .fab-btn .eye-open { opacity: 0; }
+  .fab-btn .eye-closed { opacity: 1; }
+  .fab-btn .zzz { opacity: 0.7; }
+
+  /* 浮动菜单遮罩 */
+  .fab-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  .fab-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 浮动菜单面板 */
+  .fab-menu {
+    position: fixed;
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s, visibility 0.25s, transform 0.25s;
+  }
+  .fab-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .fab-menu-inner {
+    background: #fff;
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    min-width: 170px;
+  }
+  .fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .fab-menu-item:hover { background: #fff5f7; }
+  .fab-menu-item:active { background: #fce4ec; }
+  .fab-menu-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .fab-menu-text { font-size: 14px; color: #333; font-weight: 500; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-title" id="site-title">我们的小窝</div>
-  <div class="sync-status" id="sync-status" style="background:#f5f5f5;color:#999;">本地模式</div>
+  <div class="sync-status" id="sync-status" onclick="manualCloudSync()" style="background:#f5f5f5;color:#999;">🔄 本地模式</div>
 </div>
 
 <div class="nav">
@@ -351,7 +462,315 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- 浮动按钮 -->
+<div class="fab-overlay" id="fab-overlay" onclick="closeFabMenu()"></div>
+<div class="fab-menu" id="fab-menu">
+  <div class="fab-menu-inner">
+    <button class="fab-menu-item" onclick="fabAction('home')">
+      <div class="fab-menu-icon" style="background:#fff0f3;">🏠</div>
+      <div class="fab-menu-text">首页</div>
+    </button>
+    <button class="fab-menu-item" onclick="fabAction('diary')">
+      <div class="fab-menu-icon" style="background:#e8f5e9;">✏️</div>
+      <div class="fab-menu-text">写日记</div>
+    </button>
+    <button class="fab-menu-item" onclick="fabAction('album')">
+      <div class="fab-menu-icon" style="background:#e3f2fd;">📷</div>
+      <div class="fab-menu-text">照片</div>
+    </button>
+    <button class="fab-menu-item" onclick="fabAction('anniversary')">
+      <div class="fab-menu-icon" style="background:#fff8e1;">🎉</div>
+      <div class="fab-menu-text">纪念日</div>
+    </button>
+    <button class="fab-menu-item" onclick="fabAction('wishlist')">
+      <div class="fab-menu-icon" style="background:#f3e5f5;">🌟</div>
+      <div class="fab-menu-text">心愿</div>
+    </button>
+  </div>
+</div>
+<button class="fab-btn" id="fab-btn" onclick="toggleFabMenu(event)" aria-label="快捷菜单">
+  <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- 猪鼻子 -->
+    <ellipse cx="50" cy="53" rx="15" ry="11" fill="#f8bbd0"/>
+    <circle cx="44" cy="51" r="3.5" fill="#c2185b"/>
+    <circle cx="56" cy="51" r="3.5" fill="#c2185b"/>
+    <!-- 猪耳朵 -->
+    <ellipse cx="28" cy="30" rx="12" ry="9" fill="#f48fb1" transform="rotate(-20 28 30)"/>
+    <ellipse cx="72" cy="30" rx="12" ry="9" fill="#f48fb1" transform="rotate(20 72 30)"/>
+    <!-- 猪头 -->
+    <circle cx="50" cy="50" r="32" fill="#f48fb1"/>
+    <!-- 眼睛-睁眼 -->
+    <g class="eye-open">
+      <circle cx="38" cy="42" r="5" fill="#fff"/>
+      <circle cx="38" cy="42" r="2.5" fill="#333" id="pupil-l"/>
+      <circle cx="62" cy="42" r="5" fill="#fff"/>
+      <circle cx="62" cy="42" r="2.5" fill="#333" id="pupil-r"/>
+    </g>
+    <!-- 眼睛-闭眼（睡觉弧线） -->
+    <g class="eye-closed">
+      <path d="M32 42 Q38 48 44 42" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M56 42 Q62 48 68 42" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Zzz 睡觉符号（闭眼时显示） -->
+    <g class="zzz">
+      <text x="72" y="24" fill="#fff" font-size="12" font-weight="bold">Z</text>
+      <text x="79" y="16" fill="#fff" font-size="9" font-weight="bold">z</text>
+      <text x="71" y="10" fill="#fff" font-size="7" font-weight="bold">z</text>
+    </g>
+  </svg>
+</button>
+
 <script>
+// ============ 浮动按钮 ============
+var fabOpen = false;
+var fabDragging = false;
+var fabMoved = false;
+var fabStartX = 0, fabStartY = 0;
+var fabBtnX = 0, fabBtnY = 0;
+var fabBtnEl, fabMenuEl;
+
+(function initFab() {
+  fabBtnEl = $('fab-btn');
+  fabMenuEl = $('fab-menu');
+
+  // 触摸拖拽（移动端）
+  fabBtnEl.addEventListener('touchstart', function(e) {
+    if (fabOpen) return;
+    fabDragging = true;
+    fabMoved = false;
+    var touch = e.touches[0];
+    var rect = fabBtnEl.getBoundingClientRect();
+    fabStartX = touch.clientX;
+    fabStartY = touch.clientY;
+    fabBtnX = rect.left;
+    fabBtnY = rect.top;
+    fabBtnEl.style.transition = 'none';
+  }, { passive: true });
+
+  fabBtnEl.addEventListener('touchmove', function(e) {
+    if (!fabDragging) return;
+    var touch = e.touches[0];
+    var dx = touch.clientX - fabStartX;
+    var dy = touch.clientY - fabStartY;
+
+    if (!fabMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      fabMoved = true;
+      fabBtnEl.classList.add('open'); // 拖拽时睁眼
+    }
+    if (!fabMoved) return;
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var newX = Math.max(4, Math.min(vw - 60, fabBtnX + dx));
+    var newY = Math.max(4, Math.min(vh - 60, fabBtnY + dy));
+
+    fabBtnEl.style.left = newX + 'px';
+    fabBtnEl.style.top = newY + 'px';
+    fabBtnEl.style.right = 'auto';
+    fabBtnEl.style.bottom = 'auto';
+
+    // 眼珠跟随拖拽方向
+    movePupils(dx, dy);
+  }, { passive: true });
+
+  fabBtnEl.addEventListener('touchend', function(e) {
+    if (!fabDragging) return;
+    fabDragging = false;
+
+    // 吸边效果
+    if (fabMoved) {
+      var rect = fabBtnEl.getBoundingClientRect();
+      var centerX = rect.left + rect.width / 2;
+      var vw = window.innerWidth;
+
+      fabBtnEl.style.transition = 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      if (centerX < vw / 2) {
+        fabBtnEl.style.left = '12px';
+      } else {
+        fabBtnEl.style.left = (vw - 68) + 'px';
+      }
+      fabBtnEl.style.right = 'auto';
+
+      // 保存位置
+      saveFabPos();
+    }
+
+    // 眼珠回正，如果菜单没打开则闭眼
+    resetPupils();
+    if (!fabOpen) fabBtnEl.classList.remove('open');
+  }, { passive: true });
+
+  // 鼠标拖拽（桌面端，可选）
+  var mouseDown = false;
+  fabBtnEl.addEventListener('mousedown', function(e) {
+    if (fabOpen) return;
+    mouseDown = true;
+    fabMoved = false;
+    fabStartX = e.clientX;
+    fabStartY = e.clientY;
+    var rect = fabBtnEl.getBoundingClientRect();
+    fabBtnX = rect.left;
+    fabBtnY = rect.top;
+    fabBtnEl.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!mouseDown) return;
+    var dx = e.clientX - fabStartX;
+    var dy = e.clientY - fabStartY;
+    if (!fabMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      fabMoved = true;
+      fabBtnEl.classList.add('open'); // 拖拽时睁眼
+    }
+    if (!fabMoved) return;
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var newX = Math.max(4, Math.min(vw - 60, fabBtnX + dx));
+    var newY = Math.max(4, Math.min(vh - 60, fabBtnY + dy));
+    fabBtnEl.style.left = newX + 'px';
+    fabBtnEl.style.top = newY + 'px';
+    fabBtnEl.style.right = 'auto';
+    fabBtnEl.style.bottom = 'auto';
+
+    // 眼珠跟随拖拽方向
+    movePupils(dx, dy);
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (!mouseDown) return;
+    mouseDown = false;
+    if (fabMoved) {
+      var rect = fabBtnEl.getBoundingClientRect();
+      var centerX = rect.left + rect.width / 2;
+      var vw = window.innerWidth;
+      fabBtnEl.style.transition = 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      if (centerX < vw / 2) {
+        fabBtnEl.style.left = '12px';
+      } else {
+        fabBtnEl.style.left = (vw - 68) + 'px';
+      }
+      fabBtnEl.style.right = 'auto';
+      saveFabPos();
+    }
+    // 眼珠回正，如果菜单没打开则闭眼
+    resetPupils();
+    if (!fabOpen) fabBtnEl.classList.remove('open');
+  });
+
+  // 恢复保存的位置
+  loadFabPos();
+})();
+
+// ============ 眼珠跟随拖拽 ============
+var PUPIL_L_X = 38, PUPIL_L_Y = 42;
+var PUPIL_R_X = 62, PUPIL_R_Y = 42;
+var PUPIL_MAX = 2; // SVG 坐标系下最大偏移
+
+function movePupils(dx, dy) {
+  var dist = Math.sqrt(dx * dx + dy * dy);
+  var maxDist = 60; // 拖拽超过 60px 时眼珠到达最大偏移
+  var ratio = Math.min(dist / maxDist, 1);
+  var angle = Math.atan2(dy, dx);
+  var offsetX = Math.cos(angle) * PUPIL_MAX * ratio;
+  var offsetY = Math.sin(angle) * PUPIL_MAX * ratio;
+
+  var pl = document.getElementById('pupil-l');
+  var pr = document.getElementById('pupil-r');
+  if (pl) { pl.setAttribute('cx', PUPIL_L_X + offsetX); pl.setAttribute('cy', PUPIL_L_Y + offsetY); }
+  if (pr) { pr.setAttribute('cx', PUPIL_R_X + offsetX); pr.setAttribute('cy', PUPIL_R_Y + offsetY); }
+}
+
+function resetPupils() {
+  var pl = document.getElementById('pupil-l');
+  var pr = document.getElementById('pupil-r');
+  if (pl) { pl.setAttribute('cx', PUPIL_L_X); pl.setAttribute('cy', PUPIL_L_Y); }
+  if (pr) { pr.setAttribute('cx', PUPIL_R_X); pr.setAttribute('cy', PUPIL_R_Y); }
+}
+
+function saveFabPos() {
+  var rect = fabBtnEl.getBoundingClientRect();
+  try { localStorage.setItem('fab_pos', JSON.stringify({ left: fabBtnEl.style.left, top: fabBtnEl.style.top, right: fabBtnEl.style.right, bottom: fabBtnEl.style.bottom })); } catch(e) {}
+}
+
+function loadFabPos() {
+  try {
+    var saved = localStorage.getItem('fab_pos');
+    if (saved) {
+      var pos = JSON.parse(saved);
+      if (pos.left) fabBtnEl.style.left = pos.left;
+      if (pos.top) fabBtnEl.style.top = pos.top;
+      if (pos.right && pos.right !== 'auto') fabBtnEl.style.right = pos.right;
+      if (pos.bottom && pos.bottom !== 'auto') fabBtnEl.style.bottom = pos.bottom;
+      // 如果有自定义 left/top，清除默认的 right/bottom
+      if (pos.left && pos.top) {
+        fabBtnEl.style.right = 'auto';
+        fabBtnEl.style.bottom = 'auto';
+      }
+    }
+  } catch(e) {}
+}
+
+function toggleFabMenu(e) {
+  if (fabMoved) {
+    fabMoved = false;
+    return;
+  }
+  if (fabOpen) {
+    closeFabMenu();
+  } else {
+    openFabMenu();
+  }
+}
+
+function openFabMenu() {
+  fabOpen = true;
+  fabBtnEl.classList.add('open');
+
+  // 定位菜单在按钮上方
+  var btnRect = fabBtnEl.getBoundingClientRect();
+  fabMenuEl.style.bottom = (window.innerHeight - btnRect.top + 10) + 'px';
+  var menuLeft = btnRect.left + btnRect.width / 2 - 85;
+  menuLeft = Math.max(12, Math.min(window.innerWidth - 182, menuLeft));
+  fabMenuEl.style.left = menuLeft + 'px';
+
+  fabMenuEl.classList.add('show');
+  $('fab-overlay').classList.add('show');
+}
+
+function closeFabMenu() {
+  fabOpen = false;
+  fabBtnEl.classList.remove('open');
+  fabMenuEl.classList.remove('show');
+  $('fab-overlay').classList.remove('show');
+}
+
+function fabAction(type) {
+  closeFabMenu();
+  switchPage(type);
+  // 如果是日记，自动打开写日记弹窗
+  if (type === 'diary') {
+    setTimeout(function() { openDiaryModal(); }, 300);
+  }
+  // 如果是相册，触发照片上传
+  if (type === 'album') {
+    setTimeout(function() { document.getElementById('photo-input').click(); }, 300);
+  }
+  // 如果是纪念日，打开添加弹窗
+  if (type === 'anniversary') {
+    setTimeout(function() { openAnnModal(); }, 300);
+  }
+  // 如果是心愿，打开添加弹窗
+  if (type === 'wishlist') {
+    setTimeout(function() { openWishModal(); }, 300);
+  }
+  // 首页直接滚到顶部
+  if (type === 'home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 // ============ 阿里云 OSS 配置（公共读写，无需签名）============
 var cloudCfg = {
   bucket: 'martinleo',  // Bucket名称
@@ -567,6 +986,21 @@ function autoLoadFromOSS() {
   });
 }
 
+// ============ 手动触发云端同步（点击右上角状态标签）============
+function manualCloudSync() {
+  if (!cloudCfg.accessKeyId || !cloudCfg.bucket) {
+    showToast('请先在设置中配置云端同步');
+    setTimeout(function() { switchPage('settings'); }, 1200);
+    return;
+  }
+  if (!navigator.onLine) {
+    showToast('当前离线，无法同步');
+    return;
+  }
+  showToast('正在从云端同步...');
+  autoLoadFromOSS();
+}
+
 // ============ 同步到OSS（公共读写，无需签名）============
 function cloudSyncSilent() {
   if (!cloudCfg.bucket) return;
@@ -666,27 +1100,27 @@ function updateSyncStatus(status, msg) {
   if (status === 'synced') {
     el.style.background = '#e8f5e9';
     el.style.color = '#4caf50';
-    el.textContent = msg || '已同步';
+    el.innerHTML = '🔄 ' + (msg || '已同步');
   } else if (status === 'syncing') {
     el.style.background = '#fff3e0';
     el.style.color = '#ff9800';
-    el.textContent = msg || '同步中...';
+    el.innerHTML = '🔄 ' + (msg || '同步中...');
   } else if (status === 'error') {
     el.style.background = '#ffebee';
     el.style.color = '#f44336';
-    el.textContent = msg || '同步失败';
+    el.innerHTML = '🔄 ' + (msg || '同步失败');
   } else if (status === 'offline') {
     el.style.background = '#eceff1';
     el.style.color = '#78909c';
-    el.textContent = msg || '离线';
+    el.innerHTML = '🔄 ' + (msg || '离线');
   } else if (status === 'pending') {
     el.style.background = '#fff8e1';
     el.style.color = '#ffa000';
-    el.textContent = msg || '待同步';
+    el.innerHTML = '🔄 ' + (msg || '待同步');
   } else {
     el.style.background = '#f5f5f5';
     el.style.color = '#999';
-    el.textContent = msg || '本地';
+    el.innerHTML = '🔄 ' + (msg || '本地');
   }
 }
 
@@ -719,6 +1153,8 @@ function switchPage(name) {
 
 // ============ 弹窗 ============
 function openDiaryModal(diaryId) {
+  // 先关闭所有弹窗，避免日记详情遮挡编辑
+  closeModals();
   // 重置状态
   editingDiaryId = null;
   $('d-title').value = '';
