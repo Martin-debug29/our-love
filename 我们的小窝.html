@@ -501,10 +501,10 @@
     <circle cx="50" cy="50" r="32" fill="#f48fb1"/>
     <!-- 眼睛-睁眼 -->
     <g class="eye-open">
-      <circle cx="38" cy="42" r="5" fill="#fff"/>
-      <circle cx="38" cy="42" r="2.5" fill="#333" id="pupil-l"/>
-      <circle cx="62" cy="42" r="5" fill="#fff"/>
-      <circle cx="62" cy="42" r="2.5" fill="#333" id="pupil-r"/>
+      <circle cx="38" cy="42" r="7" fill="#fff"/>
+      <circle cx="38" cy="42" r="4" fill="#333" id="pupil-l"/>
+      <circle cx="62" cy="42" r="7" fill="#fff"/>
+      <circle cx="62" cy="42" r="4" fill="#333" id="pupil-r"/>
     </g>
     <!-- 眼睛-闭眼（睡觉弧线） -->
     <g class="eye-closed">
@@ -666,7 +666,7 @@ var fabBtnEl, fabMenuEl;
 // ============ 眼珠跟随拖拽 ============
 var PUPIL_L_X = 38, PUPIL_L_Y = 42;
 var PUPIL_R_X = 62, PUPIL_R_Y = 42;
-var PUPIL_MAX = 2; // SVG 坐标系下最大偏移
+var PUPIL_MAX = 2.8; // SVG 坐标系下最大偏移
 
 function movePupils(dx, dy) {
   var dist = Math.sqrt(dx * dx + dy * dy);
