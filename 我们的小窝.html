@@ -165,6 +165,8 @@
     will-change: transform;
     padding: 0;
     line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
   .fab-btn:active { transform: scale(0.92); }
   .fab-btn.open {
@@ -186,6 +188,20 @@
   .fab-btn .eye-open { opacity: 0; }
   .fab-btn .eye-closed { opacity: 1; }
   .fab-btn .zzz { opacity: 0.7; }
+
+  /* 深色模式适配 */
+  /* 浅色模式：深色眼球 + 黑眼珠 */
+  .fab-btn .eye-open .eyeball { fill: #222; stroke: #444; stroke-width: 0.5; }
+  .fab-btn .eye-open .pupil { fill: #000; stroke: #000; stroke-width: 0.3; }
+  .fab-btn .eye-closed .eye-line { stroke: #222; }
+  .fab-btn .zzz .zzz-text { fill: #fff; }
+  /* 深色模式：浅色眼球 + 白眼珠 */
+  @media (prefers-color-scheme: dark) {
+    .fab-btn .eye-open .eyeball { fill: #fff; stroke: #ccc; stroke-width: 0.8; }
+    .fab-btn .eye-open .pupil { fill: #111; stroke: #111; stroke-width: 0.3; }
+    .fab-btn .eye-closed .eye-line { stroke: #fff; }
+    .fab-btn .zzz .zzz-text { fill: #fff; }
+  }
 
   /* 浮动菜单遮罩 */
   .fab-overlay {
@@ -501,21 +517,21 @@
     <circle cx="50" cy="50" r="32" fill="#f48fb1"/>
     <!-- 眼睛-睁眼 -->
     <g class="eye-open">
-      <circle cx="38" cy="42" r="7" fill="#fff"/>
-      <circle cx="38" cy="42" r="4" fill="#333" id="pupil-l"/>
-      <circle cx="62" cy="42" r="7" fill="#fff"/>
-      <circle cx="62" cy="42" r="4" fill="#333" id="pupil-r"/>
+      <circle cx="38" cy="42" r="7" class="eyeball"/>
+      <circle cx="38" cy="42" r="4" id="pupil-l" class="pupil"/>
+      <circle cx="62" cy="42" r="7" class="eyeball"/>
+      <circle cx="62" cy="42" r="4" id="pupil-r" class="pupil"/>
     </g>
     <!-- 眼睛-闭眼（睡觉弧线） -->
     <g class="eye-closed">
-      <path d="M32 42 Q38 48 44 42" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <path d="M56 42 Q62 48 68 42" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M32 42 Q38 48 44 42" class="eye-line" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M56 42 Q62 48 68 42" class="eye-line" stroke-width="2" fill="none" stroke-linecap="round"/>
     </g>
     <!-- Zzz 睡觉符号（闭眼时显示） -->
     <g class="zzz">
-      <text x="72" y="24" fill="#fff" font-size="12" font-weight="bold">Z</text>
-      <text x="79" y="16" fill="#fff" font-size="9" font-weight="bold">z</text>
-      <text x="71" y="10" fill="#fff" font-size="7" font-weight="bold">z</text>
+      <text x="72" y="24" class="zzz-text" font-size="12" font-weight="bold">Z</text>
+      <text x="79" y="16" class="zzz-text" font-size="9" font-weight="bold">z</text>
+      <text x="71" y="10" class="zzz-text" font-size="7" font-weight="bold">z</text>
     </g>
   </svg>
 </button>
