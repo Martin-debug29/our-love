@@ -851,8 +851,8 @@ var networkState = {
   // 设置网络监听
   setupNetworkListeners();
   
-  // 自动从云端加载
-  autoLoadFromOSS();
+  // 延迟后台同步：先让页面完整渲染，再去请求网络，不阻塞首屏
+  setTimeout(function() { autoLoadFromOSS(); }, 500);
 })();
 
 // ============ 网络状态监听 ============
@@ -879,135 +879,153 @@ function setupNetworkListeners() {
   });
 }
 
-// ============ 智能请求（带超时重试）============
+// ============ 智能请求（fetch优先 + XHR兜底，带超时重试）============
 function smartRequest(options) {
+  // 优先用 fetch（对 CORS 更友好，手机浏览器兼容好）
+  if (window.fetch) {
+    return smartFetch(options);
+  }
+  return smartXHR(options);
+}
+
+function smartFetch(options) {
+  var timeout = options.timeout || 15000;
+  var retries = 0;
+  var maxRetries = options.retries || 2;
+
+  function attempt() {
+    var controller = window.AbortController ? new AbortController() : null;
+    var timer = controller ? setTimeout(function() { controller.abort(); }, timeout) : null;
+
+    var fetchOptions = {
+      method: options.method || 'GET',
+      headers: options.headers || {},
+      body: options.body || undefined,
+      mode: 'cors',
+      cache: 'no-store'
+    };
+    if (controller) fetchOptions.signal = controller.signal;
+
+    return fetch(options.url, fetchOptions)
+      .then(function(resp) {
+        if (timer) clearTimeout(timer);
+        if (resp.status === 404) return null;
+        if (!resp.ok) throw { type: 'http', status: resp.status, message: '错误 ' + resp.status };
+        var ct = resp.headers.get('content-type') || '';
+        if (ct.indexOf('json') !== -1 || options.method === 'GET') {
+          return resp.text().then(function(txt) {
+            if (!txt) return null;
+            try { return JSON.parse(txt); } catch(e) { return txt; }
+          });
+        }
+        return null;
+      })
+      .catch(function(err) {
+        if (timer) clearTimeout(timer);
+        retries++;
+        var isAbort = err && (err.name === 'AbortError' || err.type === 'aborted');
+        console.log((isAbort ? '⏱️ 超时' : '❌ 错误') + ' (尝试 ' + retries + '/' + maxRetries + ')');
+        if (retries <= maxRetries) {
+          return new Promise(function(r) { setTimeout(r, Math.pow(2, retries) * 800); }).then(attempt);
+        }
+        throw { type: isAbort ? 'timeout' : 'network', message: isAbort ? '请求超时' : '网络错误' };
+      });
+  }
+  return attempt();
+}
+
+function smartXHR(options) {
   return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    var timeout = options.timeout || 25000;
+    var timeout = options.timeout || 15000;
     var retries = 0;
-    var maxRetries = options.retries || 3;
-    
+    var maxRetries = options.retries || 2;
+    var xhr;
+
     function attempt() {
-      xhr.abort();
+      if (xhr) xhr.abort();
       xhr = new XMLHttpRequest();
-      
       xhr.open(options.method || 'GET', options.url, true);
-      
       if (options.headers) {
-        Object.keys(options.headers).forEach(function(key) {
-          xhr.setRequestHeader(key, options.headers[key]);
-        });
+        Object.keys(options.headers).forEach(function(k) { xhr.setRequestHeader(k, options.headers[k]); });
       }
-      
       xhr.timeout = timeout;
-      
       xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            if (xhr.responseText) {
-              resolve(JSON.parse(xhr.responseText));
-            } else {
-              resolve(null);
-            }
-          } catch(e) {
-            resolve(xhr.responseText);
-          }
+          try { resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+          catch(e) { resolve(xhr.responseText); }
         } else if (xhr.status === 404) {
           resolve(null);
         } else {
           reject({ type: 'http', status: xhr.status, message: '错误 ' + xhr.status });
         }
       };
-      
       xhr.ontimeout = function() {
         retries++;
-        console.log('⏱️ 超时 (尝试 ' + retries + '/' + maxRetries + ')');
-        if (retries < maxRetries) {
-          setTimeout(attempt, Math.pow(2, retries) * 1000);
-        } else {
-          reject({ type: 'timeout', message: '请求超时' });
-        }
+        if (retries <= maxRetries) { setTimeout(attempt, Math.pow(2, retries) * 800); }
+        else { reject({ type: 'timeout', message: '请求超时' }); }
       };
-      
       xhr.onerror = function() {
         retries++;
-        console.log('❌ 网络错误 (尝试 ' + retries + '/' + maxRetries + ')');
-        if (retries < maxRetries) {
-          setTimeout(attempt, Math.pow(2, retries) * 1000);
-        } else {
-          reject({ type: 'network', message: '网络连接失败' });
-        }
+        if (retries <= maxRetries) { setTimeout(attempt, Math.pow(2, retries) * 800); }
+        else { reject({ type: 'network', message: '网络连接失败' }); }
       };
-      
       xhr.send(options.body || null);
     }
-    
     attempt();
   });
 }
 
-// ============ 从OSS加载数据 ============
+// ============ 从OSS加载数据（完全后台静默，不阻塞页面）============
 function autoLoadFromOSS() {
-  // 公共读写模式：只需要有 bucket 配置即可，不需要 accessKeyId
   if (!cloudCfg.bucket) {
     updateSyncStatus('idle', '未配置');
     return;
   }
-  
   if (!navigator.onLine) {
     updateSyncStatus('offline', '离线');
     return;
   }
-  
-  updateSyncStatus('syncing', '检查中...');
-  
-  // 优先使用 HTTPS，移动端运营商对 HTTP 可能有劫持
-  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
-  if (url.indexOf('https://') !== 0) {
-    url = 'https://' + url.replace(/^http:\/\//, '');
-  }
-  // 加随机参数避免移动端运营商缓存
-  url = url + '?_t=' + Date.now();
-  
-  // 移动端超时更短，快速降级到本地
+
+  updateSyncStatus('syncing', '同步中...');
+
+  // 构造 URL，强制 HTTPS + 防缓存时间戳
+  var url = 'https://' + cloudCfg.bucket + '.' + cloudCfg.region + '.aliyuncs.com'
+            + '/' + cloudCfg.objectKey
+            + '?_t=' + Date.now();
+
+  // 移动端首次加载用较短超时，快速降级不卡界面
   var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  var requestTimeout = isMobile ? 10000 : 15000;
-  var maxRetries = isMobile ? 2 : 3;
-  
-  smartRequest({
-    method: 'GET',
-    url: url,
-    timeout: requestTimeout,
-    retries: maxRetries
-  }).then(function(res) {
-    if (res) {
+  var reqTimeout = isMobile ? 8000 : 12000;
+
+  smartRequest({ method: 'GET', url: url, timeout: reqTimeout, retries: 1 })
+    .then(function(res) {
+      if (!res) {
+        // 云端无数据，把本地推上去
+        cloudSyncSilent();
+        return;
+      }
       var cloudTime = res._syncTime || 0;
       var localTime = appData._syncTime || 0;
-      
       if (cloudTime > localTime) {
         appData = res;
         saveLocal();
-        
         $('set-title').value = appData.settings.title || '我们的小窝';
         $('set-name1').value = appData.settings.name1 || '';
         $('set-name2').value = appData.settings.name2 || '';
         $('set-start-date').value = appData.settings.startDate || '';
-        
         renderAll();
         updateSyncStatus('synced', '已同步');
         showToast('已同步云端数据 ✓');
       } else {
-        updateSyncStatus('syncing', '上传中...');
+        // 本地更新，推到云端
         cloudSyncSilent();
       }
-    } else {
-      cloudSyncSilent();
-    }
-  }).catch(function(err) {
-    console.log('加载失败:', err.message);
-    // 移动端加载失败时，静默降级到本地模式，不影响体验
-    updateSyncStatus('idle', '本地');
-  });
+    })
+    .catch(function(err) {
+      console.log('OSS 加载失败 (静默降级):', err.message || err);
+      // 任何错误都静默降级到本地，绝不阻塞页面
+      updateSyncStatus('idle', '本地');
+    });
 }
 
 // ============ 手动触发云端同步（点击右上角状态标签）============
@@ -1043,47 +1061,36 @@ function cloudSyncSilent() {
   
   networkState.syncInProgress = true;
   networkState.pendingSync = false;
-  
   updateSyncStatus('syncing', '同步中...');
   
   appData._syncTime = Date.now();
   var jsonData = JSON.stringify(appData);
   
-  // 公共读写，直接 PUT，强制 HTTPS 防止移动端劫持
-  var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
-  if (url.indexOf('https://') !== 0) {
-    url = 'https://' + url.replace(/^http:\/\//, '');
-  }
+  // 强制 HTTPS，直接构造 URL 不依赖 endpoint 变量
+  var url = 'https://' + cloudCfg.bucket + '.' + cloudCfg.region + '.aliyuncs.com'
+            + '/' + cloudCfg.objectKey;
   
-  // 移动端超时更短
   var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  var requestTimeout = isMobile ? 12000 : 20000;
-  var maxRetries = isMobile ? 2 : 3;
   
   smartRequest({
     method: 'PUT',
     url: url,
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: jsonData,
-    timeout: requestTimeout,
-    retries: maxRetries
-  }).then(function(res) {
+    timeout: isMobile ? 10000 : 15000,
+    retries: isMobile ? 1 : 2
+  }).then(function() {
     networkState.syncInProgress = false;
     networkState.retryCount = 0;
     updateSyncStatus('synced', '已同步');
     console.log('✅ 同步成功');
   }).catch(function(err) {
     networkState.syncInProgress = false;
-    console.log('❌ 同步失败:', err.message);
-    
-    if (err.type === 'timeout' || err.type === 'network') {
-      networkState.pendingSync = true;
-      updateSyncStatus('pending', '待同步');
-    } else {
-      updateSyncStatus('error', '同步失败');
-    }
+    console.log('❌ 同步失败:', err.message || err);
+    // 网络/超时错误标记待同步，下次恢复网络自动重试
+    networkState.pendingSync = (err.type === 'timeout' || err.type === 'network');
+    updateSyncStatus(networkState.pendingSync ? 'pending' : 'error',
+                     networkState.pendingSync ? '待同步' : '同步失败');
   });
 }
 
