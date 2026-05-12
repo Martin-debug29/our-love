@@ -192,11 +192,11 @@
   .fab-btn .eye-closed { opacity: 1; }
   .fab-btn .zzz { opacity: 0.7; }
 
-  /* 眼球：白底 + 黑眼珠 */
-  .fab-btn .eye-open .eyeball { fill: #fff; stroke: #ddd; stroke-width: 0.8; }
-  .fab-btn .eye-open .pupil { fill: #111; stroke: #111; stroke-width: 0.3; }
-  .fab-btn .eye-closed .eye-line { stroke: #fff; }
-  .fab-btn .zzz .zzz-text { fill: #fff; }
+  /* 眼球：白底 + 黑眼珠，用硬编码颜色确保深色模式下也正常 */
+  .fab-btn .eye-open .eyeball { fill: #ffffff; stroke: #b0b0b0; stroke-width: 1.2; }
+  .fab-btn .eye-open .pupil { fill: #1a1a1a; stroke: #1a1a1a; stroke-width: 0; }
+  .fab-btn .eye-closed .eye-line { stroke: #ffffff; }
+  .fab-btn .zzz .zzz-text { fill: #ffffff; }
 
   /* 浮动菜单遮罩 */
   .fab-overlay {
@@ -512,21 +512,21 @@
     <circle cx="50" cy="50" r="32" fill="#f48fb1"/>
     <!-- 眼睛-睁眼 -->
     <g class="eye-open">
-      <circle cx="38" cy="42" r="7" class="eyeball"/>
-      <circle cx="38" cy="42" r="4" id="pupil-l" class="pupil"/>
-      <circle cx="62" cy="42" r="7" class="eyeball"/>
-      <circle cx="62" cy="42" r="4" id="pupil-r" class="pupil"/>
+      <circle cx="38" cy="42" r="7" class="eyeball" fill="#ffffff" stroke="#aaaaaa" stroke-width="1"/>
+      <circle cx="38" cy="42" r="4" id="pupil-l" class="pupil" fill="#1a1a1a"/>
+      <circle cx="62" cy="42" r="7" class="eyeball" fill="#ffffff" stroke="#aaaaaa" stroke-width="1"/>
+      <circle cx="62" cy="42" r="4" id="pupil-r" class="pupil" fill="#1a1a1a"/>
     </g>
     <!-- 眼睛-闭眼（睡觉弧线） -->
     <g class="eye-closed">
-      <path d="M32 42 Q38 48 44 42" class="eye-line" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <path d="M56 42 Q62 48 68 42" class="eye-line" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M32 42 Q38 48 44 42" class="eye-line" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M56 42 Q62 48 68 42" class="eye-line" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     </g>
     <!-- Zzz 睡觉符号（闭眼时显示） -->
     <g class="zzz">
-      <text x="72" y="24" class="zzz-text" font-size="12" font-weight="bold">Z</text>
-      <text x="79" y="16" class="zzz-text" font-size="9" font-weight="bold">z</text>
-      <text x="71" y="10" class="zzz-text" font-size="7" font-weight="bold">z</text>
+      <text x="72" y="24" class="zzz-text" fill="#ffffff" font-size="12" font-weight="bold">Z</text>
+      <text x="79" y="16" class="zzz-text" fill="#ffffff" font-size="9" font-weight="bold">z</text>
+      <text x="71" y="10" class="zzz-text" fill="#ffffff" font-size="7" font-weight="bold">z</text>
     </g>
   </svg>
 </button>
