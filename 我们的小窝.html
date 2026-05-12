@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" style="color-scheme: light;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
 <title>我们的小窝</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { color-scheme: light; }
   body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #fafafa; color: #333; }
   
   .header { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -189,19 +192,11 @@
   .fab-btn .eye-closed { opacity: 1; }
   .fab-btn .zzz { opacity: 0.7; }
 
-  /* 深色模式适配 */
-  /* 浅色模式：深色眼球 + 黑眼珠 */
-  .fab-btn .eye-open .eyeball { fill: #222; stroke: #444; stroke-width: 0.5; }
-  .fab-btn .eye-open .pupil { fill: #000; stroke: #000; stroke-width: 0.3; }
-  .fab-btn .eye-closed .eye-line { stroke: #222; }
+  /* 眼球：白底 + 黑眼珠 */
+  .fab-btn .eye-open .eyeball { fill: #fff; stroke: #ddd; stroke-width: 0.8; }
+  .fab-btn .eye-open .pupil { fill: #111; stroke: #111; stroke-width: 0.3; }
+  .fab-btn .eye-closed .eye-line { stroke: #fff; }
   .fab-btn .zzz .zzz-text { fill: #fff; }
-  /* 深色模式：浅色眼球 + 白眼珠 */
-  @media (prefers-color-scheme: dark) {
-    .fab-btn .eye-open .eyeball { fill: #fff; stroke: #ccc; stroke-width: 0.8; }
-    .fab-btn .eye-open .pupil { fill: #111; stroke: #111; stroke-width: 0.3; }
-    .fab-btn .eye-closed .eye-line { stroke: #fff; }
-    .fab-btn .zzz .zzz-text { fill: #fff; }
-  }
 
   /* 浮动菜单遮罩 */
   .fab-overlay {
@@ -953,7 +948,8 @@ function smartRequest(options) {
 
 // ============ 从OSS加载数据 ============
 function autoLoadFromOSS() {
-  if (!cloudCfg.accessKeyId || !cloudCfg.bucket) {
+  // 公共读写模式：只需要有 bucket 配置即可，不需要 accessKeyId
+  if (!cloudCfg.bucket) {
     updateSyncStatus('idle', '未配置');
     return;
   }
@@ -965,13 +961,24 @@ function autoLoadFromOSS() {
   
   updateSyncStatus('syncing', '检查中...');
   
+  // 优先使用 HTTPS，移动端运营商对 HTTP 可能有劫持
   var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
+  if (url.indexOf('https://') !== 0) {
+    url = 'https://' + url.replace(/^http:\/\//, '');
+  }
+  // 加随机参数避免移动端运营商缓存
+  url = url + '?_t=' + Date.now();
+  
+  // 移动端超时更短，快速降级到本地
+  var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  var requestTimeout = isMobile ? 10000 : 15000;
+  var maxRetries = isMobile ? 2 : 3;
   
   smartRequest({
     method: 'GET',
     url: url,
-    timeout: 20000,
-    retries: 3
+    timeout: requestTimeout,
+    retries: maxRetries
   }).then(function(res) {
     if (res) {
       var cloudTime = res._syncTime || 0;
@@ -998,13 +1005,14 @@ function autoLoadFromOSS() {
     }
   }).catch(function(err) {
     console.log('加载失败:', err.message);
+    // 移动端加载失败时，静默降级到本地模式，不影响体验
     updateSyncStatus('idle', '本地');
   });
 }
 
 // ============ 手动触发云端同步（点击右上角状态标签）============
 function manualCloudSync() {
-  if (!cloudCfg.accessKeyId || !cloudCfg.bucket) {
+  if (!cloudCfg.bucket) {
     showToast('请先在设置中配置云端同步');
     setTimeout(function() { switchPage('settings'); }, 1200);
     return;
@@ -1041,8 +1049,16 @@ function cloudSyncSilent() {
   appData._syncTime = Date.now();
   var jsonData = JSON.stringify(appData);
   
-  // 公共读写，直接 PUT
+  // 公共读写，直接 PUT，强制 HTTPS 防止移动端劫持
   var url = cloudCfg.endpoint + '/' + cloudCfg.objectKey;
+  if (url.indexOf('https://') !== 0) {
+    url = 'https://' + url.replace(/^http:\/\//, '');
+  }
+  
+  // 移动端超时更短
+  var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  var requestTimeout = isMobile ? 12000 : 20000;
+  var maxRetries = isMobile ? 2 : 3;
   
   smartRequest({
     method: 'PUT',
@@ -1051,8 +1067,8 @@ function cloudSyncSilent() {
       'Content-Type': 'application/json'
     },
     body: jsonData,
-    timeout: 25000,
-    retries: 3
+    timeout: requestTimeout,
+    retries: maxRetries
   }).then(function(res) {
     networkState.syncInProgress = false;
     networkState.retryCount = 0;
