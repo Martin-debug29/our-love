@@ -342,6 +342,25 @@
     content: '|'; animation: ai-blink 0.8s infinite; color: #e91e63;
   }
   @keyframes ai-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  /* 心情智能推荐 */
+  .mood-suggest-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: #e91e63; background: #fce4ec;
+    border-radius: 20px; padding: 2px 8px; margin-left: 8px;
+    opacity: 0; transform: translateY(-4px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .mood-suggest-badge.show { opacity: 1; transform: translateY(0); }
+  .mood-option.suggested {
+    box-shadow: 0 0 0 2px #e91e63;
+    animation: mood-pulse 1s ease-out;
+  }
+  @keyframes mood-pulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -504,7 +523,7 @@
       <button class="modal-close" onclick="closeModals()">×</button>
     </div>
     <div class="form-group"><label class="form-label">标题</label><input type="text" id="d-title" placeholder="今天发生了什么..."></div>
-    <div class="form-group"><label class="form-label">内容</label><textarea id="d-content" placeholder="记录今天..."></textarea></div>
+    <div class="form-group"><label class="form-label">内容</label><textarea id="d-content" placeholder="记录今天..." oninput="debounceMoodSuggest()"></textarea></div>
     <div class="form-group">
       <label class="form-label">添加照片（可选，最多9张）</label>
       <button class="btn btn-outline btn-small" onclick="document.getElementById('diary-photo-input').click()">+ 添加照片</button>
@@ -517,17 +536,21 @@
         <select id="d-mood" class="mood-select-hidden">
           <option>😊开心</option>
           <option>😍甜蜜</option>
-          <option>🥹感动</option>
+          <option>😘感动</option>
+          <option>😭委屈</option>
           <option>🌙想念</option>
           <option>😌平静</option>
           <option>☀️阳光满满</option>
           <option>🏃走你</option>
           <option>😶‍🌫️发呆</option>
+          <option>😡愤怒</option>
+          <option>🤢恶心</option>
+          <option>😜调皮</option>
         </select>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">心情</label>
+      <label class="form-label">心情<span id="mood-suggest-badge" class="mood-suggest-badge">✨ 已为你推荐</span></label>
       <div class="mood-picker" id="mood-picker">
         <div class="mood-option selected" data-mood="😊开心" onclick="selectMood(this)">
           <span class="mood-emoji">😊</span><span class="mood-label">开心</span>
@@ -535,8 +558,11 @@
         <div class="mood-option" data-mood="😍甜蜜" onclick="selectMood(this)">
           <span class="mood-emoji">😍</span><span class="mood-label">甜蜜</span>
         </div>
-        <div class="mood-option" data-mood="🥹感动" onclick="selectMood(this)">
-          <span class="mood-emoji">🥹</span><span class="mood-label">感动</span>
+        <div class="mood-option" data-mood="😘感动" onclick="selectMood(this)">
+          <span class="mood-emoji">😘</span><span class="mood-label">感动</span>
+        </div>
+        <div class="mood-option" data-mood="😭委屈" onclick="selectMood(this)">
+          <span class="mood-emoji">😭</span><span class="mood-label">委屈</span>
         </div>
         <div class="mood-option" data-mood="🌙想念" onclick="selectMood(this)">
           <span class="mood-emoji">🌙</span><span class="mood-label">想念</span>
@@ -552,6 +578,15 @@
         </div>
         <div class="mood-option" data-mood="😶‍🌫️发呆" onclick="selectMood(this)">
           <span class="mood-emoji">😶‍🌫️</span><span class="mood-label">发呆</span>
+        </div>
+        <div class="mood-option" data-mood="😡愤怒" onclick="selectMood(this)">
+          <span class="mood-emoji">😡</span><span class="mood-label">愤怒</span>
+        </div>
+        <div class="mood-option" data-mood="🤢恶心" onclick="selectMood(this)">
+          <span class="mood-emoji">🤢</span><span class="mood-label">恶心</span>
+        </div>
+        <div class="mood-option" data-mood="😜调皮" onclick="selectMood(this)">
+          <span class="mood-emoji">😜</span><span class="mood-label">调皮</span>
         </div>
       </div>
     </div>
@@ -1086,9 +1121,12 @@ function recordActivity(type, id, title) {
 }
 
 // ============ 心情选择器 ============
-var MOODS = ['😊开心','😍甜蜜','🥹感动','🌙想念','😌平静','☀️阳光满满','🏃走你','😶‍🌫️发呆'];
+var MOODS = ['😊开心','😍甜蜜','😘感动','😭委屈','🌙想念','😌平静','☀️阳光满满','🏃走你','😶‍🌫️发呆','😡愤怒','🤢恶心','😜调皮'];
+var _moodManualSelected = false; // 用户是否手动选过心情
 
 function selectMood(el) {
+  _moodManualSelected = true; // 标记手动选择
+  hideMoodSuggestBadge();
   // 取消所有选中
   var options = document.querySelectorAll('#mood-picker .mood-option');
   for (var i = 0; i < options.length; i++) {
@@ -1122,6 +1160,78 @@ function syncMoodPicker(moodValue) {
       break;
     }
   }
+}
+
+// ============ 心情智能推荐 ============
+var _moodSuggestTimer = null;
+
+// 关键词 → 心情映射表（优先级从高到低，越前越精准）
+var MOOD_KEYWORDS = [
+  { mood: '😡愤怒', words: ['生气','愤怒','气死','气到','烦死','太烦','讨厌死','忍不住','爆了','骂人','怒','爆炸','气疯'] },
+  { mood: '😭委屈', words: ['委屈','难过','伤心','哭了','好哭','心疼','心碎','泪','泪目','崩溃','绝望','痛苦','心里难受'] },
+  { mood: '😘感动', words: ['感动','暖心','暖到','温暖','幸福','被爱','好爱','爱你','谢谢你','太好了','泪目','心动','动容'] },
+  { mood: '🌙想念', words: ['想你','想念','好想','思念','好久不见','什么时候回来','盼着','等你','好想见你','一直想着你'] },
+  { mood: '🤢恶心', words: ['恶心','恶臭','难闻','呕','要吐','想吐','膈应','膈应人','看不惯','讨厌'] },
+  { mood: '😜调皮', words: ['哈哈','嘻嘻','皮一下','偷偷','坏坏','搞事','整蛊','捉弄','搞笑','好玩','笑死','调皮','捣蛋'] },
+  { mood: '😍甜蜜', words: ['甜甜','好甜','超甜','蜜糖','腻歪','撒娇','宠','爱死你了','亲亲','抱抱','好喜欢你'] },
+  { mood: '😊开心', words: ['开心','快乐','高兴','棒','太棒','好棒','哇','好耶','耶','赞','太好','爽','超爽','很爽','喜悦','乐'] },
+  { mood: '☀️阳光满满', words: ['加油','元气','精神','满满','活力','充实','有劲','冲','好好','努力','奋斗','进步'] },
+  { mood: '🏃走你', words: ['运动','跑步','健身','打球','游泳','骑车','爬山','锻炼','出发','出去玩','约起','走起'] },
+  { mood: '😌平静', words: ['平静','平淡','普通','还好','一般','没什么','安静','放松','慵懒','休息','躺平','无聊'] },
+  { mood: '😶‍🌫️发呆', words: ['发呆','放空','发愣','不知道','茫然','迷茫','想着','脑子空','懵','懵懵','愣神'] }
+];
+
+function debounceMoodSuggest() {
+  if (_moodManualSelected) return; // 用户手动选过，不再自动推荐
+  clearTimeout(_moodSuggestTimer);
+  _moodSuggestTimer = setTimeout(autoSuggestMood, 500);
+}
+
+function autoSuggestMood() {
+  var text = ($('d-content').value || '') + ' ' + ($('d-title') ? $('d-title').value || '' : '');
+  text = text.toLowerCase();
+  if (text.trim().length < 4) return; // 内容太少不推荐
+
+  var bestMood = null;
+  var bestScore = 0;
+  for (var i = 0; i < MOOD_KEYWORDS.length; i++) {
+    var score = 0;
+    var words = MOOD_KEYWORDS[i].words;
+    for (var j = 0; j < words.length; j++) {
+      if (text.indexOf(words[j]) !== -1) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestMood = MOOD_KEYWORDS[i].mood;
+    }
+  }
+
+  if (bestMood && bestScore > 0) {
+    // 移除上一次推荐的 suggested 样式
+    var opts = document.querySelectorAll('#mood-picker .mood-option');
+    for (var k = 0; k < opts.length; k++) opts[k].classList.remove('suggested');
+    // 应用推荐
+    syncMoodPicker(bestMood);
+    // 高亮推荐项
+    for (var m = 0; m < opts.length; m++) {
+      if (opts[m].getAttribute('data-mood') === bestMood) {
+        opts[m].classList.add('suggested');
+        setTimeout(function(el){ el.classList.remove('suggested'); }, 1200, opts[m]);
+        break;
+      }
+    }
+    showMoodSuggestBadge();
+  }
+}
+
+function showMoodSuggestBadge() {
+  var badge = document.getElementById('mood-suggest-badge');
+  if (badge) badge.classList.add('show');
+}
+
+function hideMoodSuggestBadge() {
+  var badge = document.getElementById('mood-suggest-badge');
+  if (badge) badge.classList.remove('show');
 }
 
 // ============ 浮动按钮 ============
@@ -1789,6 +1899,8 @@ function openDiaryModal(diaryId) {
   closeModals();
   // 重置状态
   editingDiaryId = null;
+  _moodManualSelected = false; // 重置手动选择标记
+  hideMoodSuggestBadge();
   $('d-title').value = '';
   $('d-content').value = '';
   syncMoodPicker('😊开心');
