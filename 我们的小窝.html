@@ -361,9 +361,206 @@
     40% { transform: scale(1.15); }
     100% { transform: scale(1); }
   }
+
+  /* ===== 生日贺卡 ===== */
+  #birthday-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10, 0, 20, 0.92);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  #birthday-overlay.hide {
+    animation: bday-fadeout 0.8s ease forwards;
+  }
+  @keyframes bday-fadeout { to { opacity: 0; pointer-events: none; } }
+
+  #bday-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .bday-card {
+    position: relative; z-index: 2;
+    background: linear-gradient(145deg, #fff8f0 0%, #fff0fa 50%, #f0f8ff 100%);
+    border-radius: 28px;
+    padding: 36px 28px 28px;
+    width: min(92vw, 400px);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(233,30,99,0.25), 0 0 0 1px rgba(233,30,99,0.1);
+    animation: bday-card-in 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes bday-card-in {
+    from { transform: scale(0.5) translateY(60px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);      opacity: 1; }
+  }
+
+  .bday-hearts-row {
+    font-size: 22px; letter-spacing: 4px;
+    animation: bday-float 2.5s ease-in-out infinite;
+  }
+  @keyframes bday-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  .bday-title {
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(120deg, #e91e63, #ff6b35, #e91e63);
+    background-size: 200%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: bday-shimmer 2s linear infinite;
+    margin: 10px 0 4px;
+  }
+  @keyframes bday-shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+
+  .bday-subtitle {
+    font-size: 14px; color: #e91e63; opacity: 0.7; margin-bottom: 18px;
+  }
+
+  .bday-names {
+    font-size: 16px; color: #c2185b; font-weight: 600; margin-bottom: 20px;
+  }
+
+  /* 蜡烛区域 */
+  .bday-candles {
+    display: flex; justify-content: center; align-items: flex-end;
+    gap: 14px; margin: 8px 0 18px; height: 90px;
+  }
+  .bday-candle-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer;
+  }
+  /* 火焰 */
+  .bday-flame {
+    width: 14px; height: 22px;
+    background: radial-gradient(ellipse at 50% 80%, #fff 0%, #ffe066 30%, #ff9900 65%, transparent 100%);
+    border-radius: 50% 50% 20% 20% / 60% 60% 40% 40%;
+    filter: drop-shadow(0 0 6px #ffcc00) drop-shadow(0 0 12px #ff6600);
+    animation: bday-flame 0.5s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  @keyframes bday-flame {
+    from { transform: scaleX(1) skewX(0deg); }
+    to   { transform: scaleX(0.85) skewX(8deg); }
+  }
+  .bday-flame.out {
+    opacity: 0; transform: scaleY(0) translateY(-10px);
+  }
+  /* 烟 */
+  .bday-smoke {
+    width: 3px; height: 0; background: transparent;
+    border-radius: 4px; margin-bottom: -2px;
+    opacity: 0;
+    transition: none;
+  }
+  .bday-smoke.puffing {
+    animation: bday-smoke-rise 1.2s ease-out forwards;
+  }
+  @keyframes bday-smoke-rise {
+    0%   { height: 0;   opacity: 0.7; transform: translateX(0) scaleX(1); }
+    50%  { height: 28px; opacity: 0.4; transform: translateX(4px) scaleX(1.5); }
+    100% { height: 40px; opacity: 0;   transform: translateX(-3px) scaleX(2); }
+  }
+  /* 蜡烛身体 */
+  .bday-candle-body {
+    width: 16px; border-radius: 4px 4px 2px 2px;
+    background: linear-gradient(180deg, var(--cc) 0%, color-mix(in srgb, var(--cc) 70%, white) 100%);
+    box-shadow: inset -3px 0 6px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .bday-candle-body::after {
+    content: '';
+    position: absolute; top: 0; left: 3px; right: 3px; height: 3px;
+    background: rgba(0,0,0,0.12); border-radius: 2px;
+  }
+  /* 蜡烛底座 */
+  .bday-candle-base {
+    width: 22px; height: 6px;
+    background: linear-gradient(180deg, #f5deb3, #d4a96a);
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  /* 蜡芯 */
+  .bday-wick {
+    width: 2px; height: 6px;
+    background: #555;
+    border-radius: 1px;
+    margin-bottom: -1px;
+  }
+
+  /* 蛋糕 */
+  .bday-cake {
+    font-size: 52px; margin: 0 0 6px;
+    animation: bday-cake-bounce 1.5s ease-in-out infinite;
+    display: block;
+  }
+  @keyframes bday-cake-bounce {
+    0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)}
+  }
+
+  .bday-msg {
+    font-size: 15px; color: #555; line-height: 1.7;
+    background: rgba(233,30,99,0.04);
+    border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 18px;
+    border-left: 3px solid #e91e63;
+    text-align: left;
+  }
+
+  .bday-hint {
+    font-size: 12px; color: #aaa; margin-bottom: 16px;
+    animation: bday-hint-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes bday-hint-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  .bday-btn {
+    display: inline-block; padding: 12px 32px;
+    background: linear-gradient(135deg, #e91e63, #ff6090);
+    color: #fff; border: none; border-radius: 30px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(233,30,99,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .bday-btn:active { transform: scale(0.96); }
+
+  .bday-blown-msg {
+    display: none;
+    font-size: 20px; font-weight: 700; color: #e91e63;
+    margin-bottom: 12px; animation: bday-float 1.5s ease-in-out infinite;
+  }
+  .bday-blown-msg.show { display: block; }
 </style>
 </head>
 <body>
+
+<!-- 生日贺卡遮罩 -->
+<div id="birthday-overlay" style="display:none;">
+  <canvas id="bday-canvas"></canvas>
+  <div class="bday-card">
+    <div class="bday-hearts-row">🌸💕🌸💕🌸</div>
+    <div class="bday-title">生日快乐！</div>
+    <div class="bday-subtitle">Happy Birthday</div>
+    <div class="bday-names" id="bday-names">🎀 Rachel · 任仕琪 🎀</div>
+
+    <!-- 蜡烛区（由JS动态生成） -->
+    <div class="bday-candles" id="bday-candles"></div>
+
+    <div class="bday-hint" id="bday-hint">🎤 对着屏幕吹气，或点击蜡烛来许愿吹灭</div>
+    <div class="bday-blown-msg" id="bday-blown-msg">🌟 愿望已许下，心想事成！🌟</div>
+
+    <span class="bday-cake">🎂</span>
+
+    <div class="bday-msg">
+      愿你们的每一天都像今天一样，<br>
+      充满爱与温柔，甜蜜与欢笑。<br>
+      生日快乐，我们的小窝永远为你们亮着灯 🏠✨
+    </div>
+
+    <button class="bday-btn" id="bday-close-btn" onclick="closeBirthdayCard()">
+      🎁 进入我们的小窝
+    </button>
+  </div>
+</div>
 
 <!-- 通知条 -->
 <div class="notification-bar" id="notification-bar" onclick="handleNotificationClick()">
@@ -2838,6 +3035,312 @@ function compressImg(file, callback) {
   };
   reader.readAsDataURL(file);
 }
+
+// ============================================================
+// 🎂 生日贺卡模块
+// ============================================================
+(function() {
+  // ---- 配置 ----
+  var BDAY_MONTH = 5;   // 5月
+  var BDAY_DAY   = 28;  // 28日
+  var BDAY_KEY   = 'bday_shown_2026'; // localStorage key，每年换一次
+  var CANDLE_COLORS = ['#ff6b6b','#ff9f43','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff6bce'];
+  var CANDLE_HEIGHTS = [38, 52, 44, 58, 40, 55, 46];
+
+  // ---- 状态 ----
+  var bdayFireworks = null;
+  var bdayCandlesLeft = 0;
+  var bdayCandlesTotal = 0;
+  var bdayMicStream = null;
+  var bdayMicActive = false;
+  var bdayBlown = false;
+
+  // ---- 检测是否生日 & 是否已展示 ----
+  function isBirthday() {
+    var now = new Date();
+    return now.getMonth() + 1 === BDAY_MONTH && now.getDate() === BDAY_DAY;
+  }
+
+  function alreadyShown() {
+    return localStorage.getItem(BDAY_KEY) === '1';
+  }
+
+  function markShown() {
+    localStorage.setItem(BDAY_KEY, '1');
+  }
+
+  // ---- 公开入口：页面加载完后调用 ----
+  window.checkBirthdayCard = function() {
+    if (!isBirthday() || alreadyShown()) return;
+    showBirthdayCard();
+  };
+
+  // ---- 显示贺卡 ----
+  function showBirthdayCard() {
+    var overlay = document.getElementById('birthday-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    buildCandles();
+    startFireworks();
+    startMicListener();
+  }
+
+  // ---- 关闭贺卡 ----
+  window.closeBirthdayCard = function() {
+    var overlay = document.getElementById('birthday-overlay');
+    if (!overlay) return;
+    overlay.classList.add('hide');
+    stopFireworks();
+    stopMicListener();
+    markShown();
+    setTimeout(function() { overlay.style.display = 'none'; overlay.classList.remove('hide'); }, 900);
+  };
+
+  // ----------------------------------------------------------------
+  // 蜡烛构建
+  // ----------------------------------------------------------------
+  function buildCandles() {
+    var wrap = document.getElementById('bday-candles');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    bdayCandlesTotal = CANDLE_COLORS.length;
+    bdayCandlesLeft  = bdayCandlesTotal;
+
+    CANDLE_COLORS.forEach(function(color, i) {
+      var h = CANDLE_HEIGHTS[i] || 44;
+      var cw = document.createElement('div');
+      cw.className = 'bday-candle-wrap';
+      cw.setAttribute('data-index', i);
+      cw.onclick = function() { blowCandle(i); };
+
+      cw.innerHTML =
+        '<div class="bday-smoke" id="bday-smoke-' + i + '"></div>' +
+        '<div class="bday-flame" id="bday-flame-' + i + '"></div>' +
+        '<div class="bday-wick"></div>' +
+        '<div class="bday-candle-body" style="height:' + h + 'px;--cc:' + color + '"></div>' +
+        '<div class="bday-candle-base"></div>';
+
+      wrap.appendChild(cw);
+    });
+  }
+
+  // ---- 吹灭单根蜡烛 ----
+  function blowCandle(index) {
+    var flame = document.getElementById('bday-flame-' + index);
+    var smoke = document.getElementById('bday-smoke-' + index);
+    if (!flame || flame.classList.contains('out')) return;
+
+    flame.classList.add('out');
+    smoke.classList.remove('puffing');
+    void smoke.offsetWidth; // reflow
+    smoke.classList.add('puffing');
+
+    bdayCandlesLeft--;
+    if (bdayCandlesLeft <= 0 && !bdayBlown) {
+      bdayBlown = true;
+      onAllCandlesBlown();
+    }
+  }
+
+  // ---- 吹灭所有蜡烛（麦克风触发批量） ----
+  function blowAllCandles() {
+    for (var i = 0; i < bdayCandlesTotal; i++) blowCandle(i);
+  }
+
+  // ---- 全部吹灭后的庆祝 ----
+  function onAllCandlesBlown() {
+    var hint = document.getElementById('bday-hint');
+    var msg  = document.getElementById('bday-blown-msg');
+    if (hint) hint.style.display = 'none';
+    if (msg) msg.classList.add('show');
+    // 超级烟花爆发
+    if (bdayFireworks) bdayFireworks.burst(8);
+    stopMicListener();
+  }
+
+  // ----------------------------------------------------------------
+  // 烟花系统（Canvas 粒子）
+  // ----------------------------------------------------------------
+  function startFireworks() {
+    var canvas = document.getElementById('bday-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var animId = null;
+    var running = true;
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff9f43','#c77dff','#ff6bce','#fff','#ff4d4d','#00e5ff'];
+
+    function Particle(x, y, isStar) {
+      this.x = x; this.y = y;
+      this.isStar = isStar || false;
+      var angle = Math.random() * Math.PI * 2;
+      var speed = isStar ? (2 + Math.random() * 6) : (1 + Math.random() * 3);
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed - (isStar ? 2 : 0);
+      this.alpha = 1;
+      this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      this.size = isStar ? (3 + Math.random() * 4) : (2 + Math.random() * 3);
+      this.gravity = 0.08;
+      this.decay = 0.012 + Math.random() * 0.01;
+      this.twinkle = Math.random() > 0.5;
+    }
+    Particle.prototype.update = function() {
+      this.vy += this.gravity;
+      this.x += this.vx; this.y += this.vy;
+      this.vx *= 0.99; this.vy *= 0.99;
+      this.alpha -= this.decay;
+    };
+    Particle.prototype.draw = function() {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.alpha) * (this.twinkle ? (0.6 + 0.4 * Math.sin(Date.now()/80)) : 1);
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = this.isStar ? 8 : 4;
+      ctx.beginPath();
+      if (this.isStar) {
+        drawStar(ctx, this.x, this.y, 5, this.size, this.size / 2);
+      } else {
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      ctx.restore();
+    };
+
+    function drawStar(ctx, cx, cy, spikes, outer, inner) {
+      var rot = (Math.PI / 2) * 3;
+      var step = Math.PI / spikes;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outer);
+      for (var i = 0; i < spikes; i++) {
+        ctx.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
+        rot += step;
+        ctx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner);
+        rot += step;
+      }
+      ctx.lineTo(cx, cy - outer);
+      ctx.closePath();
+    }
+
+    function launchFirework() {
+      var x = canvas.width  * (0.15 + Math.random() * 0.7);
+      var y = canvas.height * (0.1  + Math.random() * 0.5);
+      var count = 55 + Math.floor(Math.random() * 40);
+      for (var i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, Math.random() > 0.6));
+      }
+    }
+
+    // 初始3发，之后每1.2s一发
+    launchFirework(); launchFirework(); launchFirework();
+    var autoTimer = setInterval(function() {
+      if (!running) return;
+      launchFirework();
+    }, 1200);
+
+    function loop() {
+      if (!running) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        if (particles[i].alpha <= 0) { particles.splice(i, 1); continue; }
+        particles[i].draw();
+      }
+      animId = requestAnimationFrame(loop);
+    }
+    loop();
+
+    bdayFireworks = {
+      burst: function(times) {
+        for (var t = 0; t < (times || 5); t++) {
+          (function(delay) {
+            setTimeout(launchFirework, delay);
+          })(t * 200);
+        }
+      },
+      stop: function() {
+        running = false;
+        clearInterval(autoTimer);
+        window.removeEventListener('resize', resize);
+        if (animId) cancelAnimationFrame(animId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    };
+  }
+
+  function stopFireworks() {
+    if (bdayFireworks) { bdayFireworks.stop(); bdayFireworks = null; }
+  }
+
+  // ----------------------------------------------------------------
+  // 麦克风吹气检测
+  // ----------------------------------------------------------------
+  function startMicListener() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(function(stream) {
+        bdayMicStream = stream;
+        bdayMicActive = true;
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        var ac = new AudioContext();
+        var src = ac.createMediaStreamSource(stream);
+        var analyser = ac.createAnalyser();
+        analyser.fftSize = 512;
+        src.connect(analyser);
+        var data = new Uint8Array(analyser.frequencyBinCount);
+        var blowFrames = 0;
+        var THRESHOLD = 90; // 音量阈值
+
+        function checkBlowing() {
+          if (!bdayMicActive) return;
+          analyser.getByteFrequencyData(data);
+          var sum = 0;
+          for (var i = 0; i < data.length; i++) sum += data[i];
+          var avg = sum / data.length;
+          if (avg > THRESHOLD) {
+            blowFrames++;
+            if (blowFrames >= 3) {
+              blowAllCandles();
+              return;
+            }
+          } else {
+            blowFrames = 0;
+          }
+          requestAnimationFrame(checkBlowing);
+        }
+        checkBlowing();
+      })
+      .catch(function() {
+        // 麦克风不可用，仍可点击蜡烛
+      });
+  }
+
+  function stopMicListener() {
+    bdayMicActive = false;
+    if (bdayMicStream) {
+      bdayMicStream.getTracks().forEach(function(t) { t.stop(); });
+      bdayMicStream = null;
+    }
+  }
+
+  // ---- 页面加载后检测 ----
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(window.checkBirthdayCard, 600);
+    });
+  } else {
+    setTimeout(window.checkBirthdayCard, 600);
+  }
+
+})();
 </script>
 </body>
 </html>
