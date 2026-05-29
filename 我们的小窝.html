@@ -96,6 +96,21 @@
   .setting-title { font-size: 15px; font-weight: 600; color: #222; margin-bottom: 14px; }
   .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
   .setting-row:last-child { border-bottom: none; }
+  /* 身份选择器 */
+  .identity-picker { display: flex; gap: 10px; margin-top: 6px; }
+  .identity-btn {
+    flex: 1; padding: 10px 6px; border-radius: 12px; border: 2px solid #eee;
+    background: #fafafa; font-size: 14px; font-weight: 600; cursor: pointer;
+    text-align: center; transition: all 0.2s; color: #888;
+  }
+  .identity-btn.active {
+    border-color: #e91e63; background: #fff0f5; color: #e91e63;
+    box-shadow: 0 2px 8px rgba(233,30,99,0.15);
+  }
+  .identity-tip {
+    font-size: 12px; color: #aaa; margin-top: 6px; padding: 6px 10px;
+    background: #fff8f9; border-radius: 8px; border-left: 3px solid #e91e63;
+  }
   
   .cloud-toggle { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
   .toggle { width: 44px; height: 24px; border-radius: 12px; background: #ccc; position: relative; cursor: pointer; transition: background 0.3s; }
@@ -660,6 +675,18 @@
       <div class="form-group"><label class="form-label">网站标题</label><input type="text" id="set-title" value="我们的小窝"></div>
       <div class="form-group"><label class="form-label">TA的名字</label><input type="text" id="set-name1" placeholder="TA"></div>
       <div class="form-group"><label class="form-label">你的名字</label><input type="text" id="set-name2" placeholder="我"></div>
+      <div class="form-group">
+        <label class="form-label">📱 这台设备是谁在用？</label>
+        <div class="identity-picker">
+          <div class="identity-btn" id="identity-btn-name2" onclick="setIdentity('name2')">
+            <div id="identity-label-name2">我</div>
+          </div>
+          <div class="identity-btn" id="identity-btn-name1" onclick="setIdentity('name1')">
+            <div id="identity-label-name1">TA</div>
+          </div>
+        </div>
+        <div class="identity-tip" id="identity-tip">💡 每台设备单独设置，不会同步。设置后评论将显示正确的名字。</div>
+      </div>
       <div class="form-group"><label class="form-label">在一起的日子</label><input type="date" id="set-start-date"></div>
       <button class="btn btn-block" onclick="doSaveSettings()">保存设置</button>
       <div id="save-msg"></div>
@@ -1730,6 +1757,7 @@ var networkState = {
   $('set-name1').value = appData.settings.name1 || '';
   $('set-name2').value = appData.settings.name2 || '';
   $('set-start-date').value = appData.settings.startDate || '';
+  refreshIdentityUI(); // 初始化身份选择器
   
   // 填充云端配置
   $('cloud-bin').value = cloudCfg.bucket || 'martinleo';
@@ -1912,6 +1940,7 @@ function autoLoadFromOSS() {
         $('set-name1').value = appData.settings.name1 || '';
         $('set-name2').value = appData.settings.name2 || '';
         $('set-start-date').value = appData.settings.startDate || '';
+        refreshIdentityUI();
         renderAll();
         updateSyncStatus('synced', '已同步');
         showToast('已同步云端数据 ✓');
@@ -2471,7 +2500,7 @@ function submitComment(diaryIdx) {
   
   var now = new Date();
   appData.diaries[diaryIdx].comments.push({
-    author: appData.settings.name2 || '我',
+    author: getMyName(),
     content: content,
     time: now.toLocaleDateString() + ' ' + now.toLocaleTimeString().slice(0, 5),
     replies: []
@@ -2500,7 +2529,7 @@ function submitReply() {
   var now = new Date();
   diary.comments[replyingToComment.commentIdx].replies = diary.comments[replyingToComment.commentIdx].replies || [];
   diary.comments[replyingToComment.commentIdx].replies.push({
-    author: appData.settings.name2 || '我',
+    author: getMyName(),
     content: content,
     time: now.toLocaleDateString() + ' ' + now.toLocaleTimeString().slice(0, 5)
   });
@@ -2777,6 +2806,46 @@ function deleteWish(id) {
   renderHome();
 }
 
+// ============ 身份识别（本地，不同步） ============
+// identity: 'name2'=「你的名字」所对应的人, 'name1'=「TA的名字」所对应的人
+var IDENTITY_KEY = 'couple_identity';
+
+function getMyName() {
+  var identity = localStorage.getItem(IDENTITY_KEY) || 'name2';
+  if (identity === 'name1') {
+    return appData.settings.name1 || 'TA';
+  }
+  return appData.settings.name2 || '我';
+}
+
+function setIdentity(who) {
+  localStorage.setItem(IDENTITY_KEY, who);
+  refreshIdentityUI();
+}
+
+function refreshIdentityUI() {
+  var identity = localStorage.getItem(IDENTITY_KEY) || 'name2';
+  var n1 = appData.settings.name1 || 'TA';
+  var n2 = appData.settings.name2 || '我';
+
+  // 更新按钮文字
+  var lbl1 = document.getElementById('identity-label-name1');
+  var lbl2 = document.getElementById('identity-label-name2');
+  if (lbl1) lbl1.textContent = n1;
+  if (lbl2) lbl2.textContent = n2;
+
+  // 更新选中状态
+  var btn1 = document.getElementById('identity-btn-name1');
+  var btn2 = document.getElementById('identity-btn-name2');
+  if (btn1) btn1.classList.toggle('active', identity === 'name1');
+  if (btn2) btn2.classList.toggle('active', identity === 'name2');
+
+  // 更新提示文字
+  var tip = document.getElementById('identity-tip');
+  var myName = identity === 'name1' ? n1 : n2;
+  if (tip) tip.innerHTML = '✅ 当前设备身份：<strong style="color:#e91e63">' + myName + '</strong>，评论将以此名字发出。';
+}
+
 // ============ 设置 ============
 function doSaveSettings() {
   appData.settings.title = $('set-title').value || '我们的小窝';
@@ -2791,6 +2860,7 @@ function doSaveSettings() {
   
   if (saveLocal()) {
     renderHome();
+    refreshIdentityUI(); // 名字改变后刷新身份选择器
     $('save-msg').innerHTML = '<div class="msg msg-success">✓ 已保存</div>';
     setTimeout(function() { $('save-msg').innerHTML = ''; }, 2000);
     
@@ -2908,6 +2978,7 @@ function doCloudLoad() {
       $('set-name1').value = appData.settings.name1 || '';
       $('set-name2').value = appData.settings.name2 || '';
       $('set-start-date').value = appData.settings.startDate || '';
+      refreshIdentityUI();
       
       renderAll();
       $('cloud-msg').innerHTML = '<div class="msg msg-success">✓ 加载成功</div>';
@@ -2950,6 +3021,7 @@ function doImport(input) {
         $('set-name1').value = appData.settings.name1 || '';
         $('set-name2').value = appData.settings.name2 || '';
         $('set-start-date').value = appData.settings.startDate || '';
+        refreshIdentityUI();
         
         renderAll();
         showToast('导入成功');
