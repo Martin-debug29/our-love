@@ -145,14 +145,27 @@
   .comments-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
   .comments-count { background: #e91e63; color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; }
   .comment-item { background: #fafafa; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-  .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .comment-author { font-size: 13px; font-weight: 600; color: #e91e63; }
-  .comment-time { font-size: 11px; color: #999; }
-  .comment-content { font-size: 14px; color: #444; line-height: 1.6; white-space: pre-wrap; }
-  .comment-actions { margin-top: 8px; display: flex; gap: 12px; }
-  .comment-action-btn { font-size: 12px; color: #999; cursor: pointer; background: none; border: none; padding: 0; }
+  .comment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+  .comment-author { font-size: 13px; font-weight: 600; color: #e91e63; flex-shrink: 0; }
+  .comment-time { font-size: 11px; color: #999; white-space: nowrap; }
+  .comment-content { font-size: 14px; color: #444; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .comment-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .comment-action-btn { font-size: 12px; color: #999; cursor: pointer; background: none; border: none; padding: 4px 0; min-height: 28px; }
   .comment-action-btn:hover { color: #e91e63; }
-  .comment-reply { margin-left: 20px; margin-top: 10px; padding-left: 12px; border-left: 2px solid #fce4ec; }
+  .comment-action-btn.danger:hover { color: #f44336; }
+  /* 回复区（二级）*/
+  .comment-reply { margin-left: 16px; margin-top: 10px; padding-left: 12px; border-left: 2px solid #fce4ec; }
+  .reply-item { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+  .reply-item:last-child { margin-bottom: 0; }
+  .reply-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 8px; }
+  .reply-author { font-size: 12px; font-weight: 600; color: #e91e63; flex-shrink: 0; }
+  .reply-time { font-size: 11px; color: #bbb; white-space: nowrap; }
+  .reply-content { font-size: 13px; color: #555; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .reply-at { color: #e91e63; font-weight: 600; margin-right: 2px; }
+  .reply-actions { margin-top: 6px; display: flex; gap: 10px; align-items: center; }
+  .reply-action-btn { font-size: 11px; color: #bbb; cursor: pointer; background: none; border: none; padding: 2px 0; min-height: 24px; }
+  .reply-action-btn:hover { color: #e91e63; }
+  .reply-action-btn.danger:hover { color: #f44336; }
   .reply-form { margin-top: 10px; }
   .reply-input { width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 10px; font-size: 14px; background: #fff; }
   .reply-input:focus { border-color: #e91e63; outline: none; }
@@ -826,11 +839,11 @@
 <div class="modal" id="reply-modal">
   <div class="modal-content">
     <div class="modal-header">
-      <div class="modal-title">回复评论</div>
+      <div class="modal-title" id="reply-modal-title">回复评论</div>
       <button class="modal-close" onclick="closeReplyModal()">×</button>
     </div>
     <div class="form-group">
-      <label class="form-label">你的回复</label>
+      <label class="form-label" id="reply-modal-label">你的回复</label>
       <textarea id="reply-content" class="reply-input" placeholder="写下你的回复..." style="width:100%;min-height:80px;"></textarea>
     </div>
     <div class="modal-actions">
@@ -2399,15 +2412,24 @@ function showDiary(id) {
   // 渲染评论
   var commentsHtml = '';
   if (d.comments && d.comments.length > 0) {
-    var commentsList = d.comments.map(function(c) {
+    var commentsList = d.comments.map(function(c, ci) {
       var repliesHtml = '';
       if (c.replies && c.replies.length > 0) {
-        repliesHtml = '<div class="comment-reply">' + c.replies.map(function(r) {
-          return '<div class="comment-item" style="margin-bottom:8px;background:#fff;">' +
-            '<div class="comment-header">' +
-            '<span class="comment-author">' + escapeHtml(r.author) + '</span>' +
-            '<span class="comment-time">' + r.time + '</span></div>' +
-            '<div class="comment-content">' + escapeHtml(r.content) + '</div></div>';
+        repliesHtml = '<div class="comment-reply">' + c.replies.map(function(r, ri) {
+          // 解析 @提及
+          var displayContent = escapeHtml(r.content);
+          if (r.replyTo) {
+            displayContent = '<span class="reply-at">@' + escapeHtml(r.replyTo) + '</span>' + displayContent;
+          }
+          return '<div class="reply-item">' +
+            '<div class="reply-header">' +
+            '<span class="reply-author">' + escapeHtml(r.author) + '</span>' +
+            '<span class="reply-time">' + r.time + '</span></div>' +
+            '<div class="reply-content">' + displayContent + '</div>' +
+            '<div class="reply-actions">' +
+            '<button class="reply-action-btn" onclick="openReplyForm(\'' + diaryIdx + '\',\'' + ci + '\',\'' + escapeHtml(r.author) + '\')">💬 回复</button>' +
+            '<button class="reply-action-btn danger" onclick="deleteReply(\'' + diaryIdx + '\',\'' + ci + '\',\'' + ri + '\')">🗑️ 删除</button>' +
+            '</div></div>';
         }).join('') + '</div>';
       }
       return '<div class="comment-item">' +
@@ -2416,8 +2438,8 @@ function showDiary(id) {
         '<span class="comment-time">' + c.time + '</span></div>' +
         '<div class="comment-content">' + escapeHtml(c.content) + '</div>' +
         '<div class="comment-actions">' +
-        '<button class="comment-action-btn" onclick="openReplyForm(\'' + diaryIdx + '\',\'' + appData.diaries[diaryIdx].comments.indexOf(c) + '\')">回复</button>' +
-        '<button class="comment-action-btn" onclick="deleteComment(\'' + diaryIdx + '\',\'' + appData.diaries[diaryIdx].comments.indexOf(c) + '\')">删除</button></div>' +
+        '<button class="comment-action-btn" onclick="openReplyForm(\'' + diaryIdx + '\',\'' + ci + '\',\'\')">💬 回复</button>' +
+        '<button class="comment-action-btn danger" onclick="deleteComment(\'' + diaryIdx + '\',\'' + ci + '\')">🗑️ 删除</button></div>' +
         repliesHtml + '</div>';
     }).join('');
     
@@ -2479,11 +2501,21 @@ function openCommentForm(diaryIdx) {
   $('new-comment-content').focus();
 }
 
-function openReplyForm(diaryIdx, commentIdx) {
-  replyingToComment = { diaryIdx: diaryIdx, commentIdx: parseInt(commentIdx) };
+function openReplyForm(diaryIdx, commentIdx, replyToAuthor) {
+  replyingToComment = { diaryIdx: diaryIdx, commentIdx: parseInt(commentIdx), replyTo: replyToAuthor || '' };
   $('reply-content').value = '';
+  // 动态标题与提示
+  if (replyToAuthor) {
+    $('reply-modal-title').textContent = '回复 ' + replyToAuthor;
+    $('reply-modal-label').textContent = '你的回复（将自动@' + replyToAuthor + '）';
+    $('reply-content').placeholder = '回复 @' + replyToAuthor + '...';
+  } else {
+    $('reply-modal-title').textContent = '回复评论';
+    $('reply-modal-label').textContent = '你的回复';
+    $('reply-content').placeholder = '写下你的回复...';
+  }
   $('reply-modal').classList.add('show');
-  $('reply-content').focus();
+  setTimeout(function() { $('reply-content').focus(); }, 100);
 }
 
 function submitComment(diaryIdx) {
@@ -2528,11 +2560,16 @@ function submitReply() {
   
   var now = new Date();
   diary.comments[replyingToComment.commentIdx].replies = diary.comments[replyingToComment.commentIdx].replies || [];
-  diary.comments[replyingToComment.commentIdx].replies.push({
+  var replyObj = {
     author: getMyName(),
     content: content,
     time: now.toLocaleDateString() + ' ' + now.toLocaleTimeString().slice(0, 5)
-  });
+  };
+  // 保存@信息（回复某个回复时）
+  if (replyingToComment.replyTo) {
+    replyObj.replyTo = replyingToComment.replyTo;
+  }
+  diary.comments[replyingToComment.commentIdx].replies.push(replyObj);
   
   if (saveAndSync() !== false) {
     closeReplyModal();
@@ -2552,6 +2589,19 @@ function deleteComment(diaryIdx, commentIdx) {
   if (saveAndSync() !== false) {
     showDiary(encodeURIComponent(diary.id));
     showToast('评论已删除');
+  }
+}
+
+function deleteReply(diaryIdx, commentIdx, replyIdx) {
+  if (!confirm('确定删除这条回复?')) return;
+  
+  var diary = appData.diaries[diaryIdx];
+  if (!diary.comments || !diary.comments[commentIdx]) return;
+  diary.comments[commentIdx].replies.splice(parseInt(replyIdx), 1);
+  
+  if (saveAndSync() !== false) {
+    showDiary(encodeURIComponent(diary.id));
+    showToast('回复已删除');
   }
 }
 
