@@ -2419,16 +2419,18 @@ function showDiary(id) {
           // 解析 @提及
           var displayContent = escapeHtml(r.content);
           if (r.replyTo) {
-            displayContent = '<span class="reply-at">@' + escapeHtml(r.replyTo) + '</span>' + displayContent;
+            displayContent = '<span class="reply-at">@' + escapeHtml(r.replyTo) + '</span> ' + displayContent;
           }
+          // 用 data-* 属性传参，避免名字中特殊字符破坏 onclick
+          var escapedAuthor = (r.author || '').replace(/"/g, '&quot;');
           return '<div class="reply-item">' +
             '<div class="reply-header">' +
             '<span class="reply-author">' + escapeHtml(r.author) + '</span>' +
             '<span class="reply-time">' + r.time + '</span></div>' +
             '<div class="reply-content">' + displayContent + '</div>' +
             '<div class="reply-actions">' +
-            '<button class="reply-action-btn" onclick="openReplyForm(\'' + diaryIdx + '\',\'' + ci + '\',\'' + escapeHtml(r.author) + '\')">💬 回复</button>' +
-            '<button class="reply-action-btn danger" onclick="deleteReply(\'' + diaryIdx + '\',\'' + ci + '\',\'' + ri + '\')">🗑️ 删除</button>' +
+            '<button class="reply-action-btn js-reply-btn" data-diary="' + diaryIdx + '" data-comment="' + ci + '" data-replyto="' + escapedAuthor + '">💬 回复</button>' +
+            '<button class="reply-action-btn danger js-del-reply-btn" data-diary="' + diaryIdx + '" data-comment="' + ci + '" data-reply="' + ri + '">🗑️ 删除</button>' +
             '</div></div>';
         }).join('') + '</div>';
       }
@@ -2438,8 +2440,8 @@ function showDiary(id) {
         '<span class="comment-time">' + c.time + '</span></div>' +
         '<div class="comment-content">' + escapeHtml(c.content) + '</div>' +
         '<div class="comment-actions">' +
-        '<button class="comment-action-btn" onclick="openReplyForm(\'' + diaryIdx + '\',\'' + ci + '\',\'\')">💬 回复</button>' +
-        '<button class="comment-action-btn danger" onclick="deleteComment(\'' + diaryIdx + '\',\'' + ci + '\')">🗑️ 删除</button></div>' +
+        '<button class="comment-action-btn js-reply-btn" data-diary="' + diaryIdx + '" data-comment="' + ci + '" data-replyto="">💬 回复</button>' +
+        '<button class="comment-action-btn danger js-del-comment-btn" data-diary="' + diaryIdx + '" data-comment="' + ci + '">🗑️ 删除</button></div>' +
         repliesHtml + '</div>';
     }).join('');
     
@@ -2468,6 +2470,21 @@ function showDiary(id) {
     '</div>' +
     '<div id="comment-form-container"></div>' +
     commentsHtml;
+
+  // 事件委托：评论/回复的操作按钮（用 data-* 传参，避免名字含特殊字符破坏 onclick）
+  var detailEl = $('diary-detail-content');
+  detailEl.addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.classList.contains('js-reply-btn')) {
+      openReplyForm(btn.dataset.diary, btn.dataset.comment, btn.dataset.replyto || '');
+    } else if (btn.classList.contains('js-del-comment-btn')) {
+      deleteComment(btn.dataset.diary, btn.dataset.comment);
+    } else if (btn.classList.contains('js-del-reply-btn')) {
+      deleteReply(btn.dataset.diary, btn.dataset.comment, btn.dataset.reply);
+    }
+  });
+
   $('diary-detail-modal').classList.add('show');
 }
 
@@ -2502,7 +2519,7 @@ function openCommentForm(diaryIdx) {
 }
 
 function openReplyForm(diaryIdx, commentIdx, replyToAuthor) {
-  replyingToComment = { diaryIdx: diaryIdx, commentIdx: parseInt(commentIdx), replyTo: replyToAuthor || '' };
+  replyingToComment = { diaryIdx: parseInt(diaryIdx), commentIdx: parseInt(commentIdx), replyTo: replyToAuthor || '' };
   $('reply-content').value = '';
   // 动态标题与提示
   if (replyToAuthor) {
@@ -2583,7 +2600,7 @@ function submitReply() {
 function deleteComment(diaryIdx, commentIdx) {
   if (!confirm('确定删除这条评论?')) return;
   
-  var diary = appData.diaries[diaryIdx];
+  var diary = appData.diaries[parseInt(diaryIdx)];
   diary.comments.splice(parseInt(commentIdx), 1);
   
   if (saveAndSync() !== false) {
@@ -2595,9 +2612,9 @@ function deleteComment(diaryIdx, commentIdx) {
 function deleteReply(diaryIdx, commentIdx, replyIdx) {
   if (!confirm('确定删除这条回复?')) return;
   
-  var diary = appData.diaries[diaryIdx];
-  if (!diary.comments || !diary.comments[commentIdx]) return;
-  diary.comments[commentIdx].replies.splice(parseInt(replyIdx), 1);
+  var diary = appData.diaries[parseInt(diaryIdx)];
+  if (!diary.comments || !diary.comments[parseInt(commentIdx)]) return;
+  diary.comments[parseInt(commentIdx)].replies.splice(parseInt(replyIdx), 1);
   
   if (saveAndSync() !== false) {
     showDiary(encodeURIComponent(diary.id));
