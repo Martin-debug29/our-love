@@ -432,6 +432,107 @@
     content: '|'; animation: ai-blink 0.8s infinite; color: #e91e63;
   }
   @keyframes ai-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  /* ===== 每日打卡 ===== */
+  .checkin-modal-content {
+    background: #fff; border-radius: 20px 20px 0 0; padding: 20px;
+    width: 100%; max-width: 680px; max-height: 90vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .checkin-scroll { flex: 1; overflow-y: auto; }
+  .checkin-section { margin-bottom: 18px; }
+  .checkin-section-label {
+    font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .checkin-textarea {
+    width: 100%; min-height: 80px; padding: 10px 12px;
+    border: 1px solid #f0b8c8; border-radius: 12px; font-size: 14px;
+    line-height: 1.6; resize: none; outline: none; box-sizing: border-box;
+    font-family: inherit; transition: border-color 0.2s;
+  }
+  .checkin-textarea:focus { border-color: #e91e63; }
+  .checkin-voice-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+  .checkin-voice-btn {
+    display: flex; align-items: center; gap: 5px; padding: 6px 12px;
+    border-radius: 20px; border: 1px solid #f0b8c8; background: #fff5f7;
+    font-size: 12px; color: #e91e63; cursor: pointer; transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .checkin-voice-btn:hover { background: #fce4ec; }
+  .checkin-voice-btn.recording {
+    background: #e91e63; color: #fff; border-color: #e91e63;
+    animation: voice-pulse 1s infinite;
+  }
+  @keyframes voice-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(233,30,99,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(233,30,99,0); }
+  }
+  .checkin-voice-hint { font-size: 11px; color: #bbb; }
+  /* 打卡列表卡片 */
+  .checkin-card {
+    background: #fff; border-radius: 16px;
+    border: 1px solid #fde0e9; padding: 16px; margin-bottom: 14px;
+  }
+  .checkin-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .checkin-card-user { font-size: 13px; font-weight: 600; color: #e91e63; }
+  .checkin-card-date { font-size: 12px; color: #bbb; }
+  .checkin-card-streak {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 11px; color: #ff9800; background: #fff8e1;
+    border-radius: 10px; padding: 2px 8px; margin-left: 6px;
+  }
+  .checkin-field { margin-bottom: 10px; }
+  .checkin-field-label {
+    font-size: 11px; color: #aaa; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;
+  }
+  .checkin-field-content { font-size: 14px; color: #333; line-height: 1.6; }
+  .checkin-ai-reply {
+    background: linear-gradient(135deg, #fff5f7, #f3e5f5);
+    border-radius: 10px; padding: 12px; margin-top: 10px; margin-bottom: 10px;
+    font-size: 13px; color: #555; line-height: 1.7; position: relative;
+  }
+  .checkin-ai-reply-label {
+    font-size: 11px; color: #e91e63; font-weight: 600; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .checkin-ai-loading {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #e91e63; padding: 8px 0;
+  }
+  .checkin-comments { margin-top: 10px; border-top: 1px solid #f8e1eb; padding-top: 10px; }
+  .checkin-comment-item {
+    display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start;
+  }
+  .checkin-comment-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #fce4ec; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #e91e63; font-weight: 600; flex-shrink: 0;
+  }
+  .checkin-comment-body { flex: 1; }
+  .checkin-comment-author { font-size: 12px; color: #e91e63; font-weight: 600; }
+  .checkin-comment-text { font-size: 13px; color: #444; line-height: 1.5; margin-top: 2px; }
+  .checkin-comment-time { font-size: 11px; color: #ccc; margin-top: 2px; }
+  .checkin-add-comment {
+    display: flex; gap: 8px; margin-top: 10px; align-items: center;
+  }
+  .checkin-comment-input {
+    flex: 1; padding: 8px 12px; border: 1px solid #f0b8c8; border-radius: 20px;
+    font-size: 13px; outline: none; font-family: inherit;
+  }
+  .checkin-comment-input:focus { border-color: #e91e63; }
+  .checkin-comment-send {
+    padding: 8px 16px; background: #e91e63; color: #fff; border: none;
+    border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .checkin-comment-send:active { transform: scale(0.95); }
+  .checkin-footer {
+    flex-shrink: 0; border-top: 1px solid #f8e1eb; padding-top: 14px; margin-top: 8px;
+  }
+  .checkin-empty { text-align: center; padding: 48px 0; color: #bbb; font-size: 14px; }
+
   /* 心情智能推荐 */
   .mood-suggest-badge {
     display: inline-flex; align-items: center; gap: 4px;
@@ -983,6 +1084,52 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- 打卡弹窗 -->
+<div class="modal" id="checkin-modal" style="z-index:1050; align-items: flex-end;">
+  <div class="checkin-modal-content">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-shrink:0;">
+      <div style="font-size:17px; font-weight:600; color:#333;">📋 每日打卡</div>
+      <button onclick="closeCheckinModal()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <!-- Tab 切换：打卡 / 历史 -->
+    <div style="display:flex; gap:0; margin-bottom:16px; background:#f7f0f3; border-radius:10px; padding:3px; flex-shrink:0;">
+      <button id="checkin-tab-write" onclick="switchCheckinTab('write')" style="flex:1;padding:7px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#e91e63;color:#fff;transition:all 0.2s;">今日打卡</button>
+      <button id="checkin-tab-history" onclick="switchCheckinTab('history')" style="flex:1;padding:7px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#999;transition:all 0.2s;">打卡记录</button>
+    </div>
+
+    <!-- 写打卡 panel -->
+    <div id="checkin-write-panel" class="checkin-scroll">
+      <div id="checkin-today-tip" style="display:none; background:#e8f5e9; border-radius:10px; padding:10px 14px; font-size:13px; color:#388e3c; margin-bottom:14px;">
+        ✅ 今天已打卡，可继续更新内容
+      </div>
+      <div class="checkin-section">
+        <div class="checkin-section-label">✨ 今天哪些事做得好？</div>
+        <textarea class="checkin-textarea" id="checkin-good" placeholder="写下今天做得好的事，哪怕是一件小事……"></textarea>
+        <div class="checkin-voice-row">
+          <button class="checkin-voice-btn" id="voice-btn-good" onclick="toggleVoice('good')">🎙️ 语音输入</button>
+          <span class="checkin-voice-hint" id="voice-hint-good"></span>
+        </div>
+      </div>
+      <div class="checkin-section">
+        <div class="checkin-section-label">💡 哪些事情可以做得更好？</div>
+        <textarea class="checkin-textarea" id="checkin-improve" placeholder="坦诚地写下可以改进的地方……"></textarea>
+        <div class="checkin-voice-row">
+          <button class="checkin-voice-btn" id="voice-btn-improve" onclick="toggleVoice('improve')">🎙️ 语音输入</button>
+          <span class="checkin-voice-hint" id="voice-hint-improve"></span>
+        </div>
+      </div>
+      <div class="checkin-footer">
+        <button onclick="submitCheckin()" style="width:100%;padding:13px;background:#e91e63;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;">打卡提交 ✓</button>
+      </div>
+    </div>
+
+    <!-- 历史记录 panel -->
+    <div id="checkin-history-panel" class="checkin-scroll" style="display:none;">
+      <div id="checkin-list-container"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 浮动按钮 -->
 <div class="fab-overlay" id="fab-overlay" onclick="closeFabMenu()"></div>
 <div class="fab-menu" id="fab-menu">
@@ -1006,6 +1153,10 @@
     <button class="fab-menu-item" onclick="fabAction('wishlist')">
       <div class="fab-menu-icon" style="background:#f3e5f5;">🌟</div>
       <div class="fab-menu-text">心愿</div>
+    </button>
+    <button class="fab-menu-item" onclick="fabAction('checkin')">
+      <div class="fab-menu-icon" style="background:#fff3e0;">📋</div>
+      <div class="fab-menu-text">每日打卡</div>
     </button>
   </div>
 </div>
@@ -1364,6 +1515,7 @@ function checkForNewActivity() {
         var localTime = appData._syncTime || 0;
         if (cloudSyncTime > localTime) {
           appData = res;
+          ensureAppDataFields();
           saveLocal();
           renderAll();
         }
@@ -1766,6 +1918,11 @@ function closeFabMenu() {
 
 function fabAction(type) {
   closeFabMenu();
+  // 打卡不切换页面，直接弹出弹窗
+  if (type === 'checkin') {
+    setTimeout(function() { openCheckinModal(); }, 200);
+    return;
+  }
   switchPage(type);
   // 如果是日记，自动打开写日记弹窗
   if (type === 'diary') {
@@ -1819,7 +1976,7 @@ var networkState = {
   if (saved) {
     try { appData = JSON.parse(saved); } catch(e) {}
   }
-  
+  ensureAppDataFields(); // 兼容新字段
   var savedCloud = localStorage.getItem('couple_cloud');
   if (savedCloud) {
     try { 
@@ -2016,6 +2173,7 @@ function autoLoadFromOSS() {
       var localTime = appData._syncTime || 0;
       if (cloudTime > localTime) {
         appData = res;
+        ensureAppDataFields();
         saveLocal();
         $('set-title').value = appData.settings.title || '我们的小窝';
         $('set-name1').value = appData.settings.name1 || '';
@@ -2105,6 +2263,16 @@ function cloudSyncSilent() {
 }
 
 function $(id) { return document.getElementById(id); }
+
+// 数据字段兼容：确保新字段在旧数据中存在
+function ensureAppDataFields() {
+  if (!appData.checkins) appData.checkins = [];
+  if (!appData.diaries) appData.diaries = [];
+  if (!appData.photos) appData.photos = [];
+  if (!appData.wishes) appData.wishes = [];
+  if (!appData.anniversaries) appData.anniversaries = [];
+  if (!appData.settings) appData.settings = {};
+}
 
 // ============ 保存数据 ============
 function saveLocal() {
@@ -3126,6 +3294,7 @@ function doCloudLoad() {
   }).then(function(res) {
     if (res) {
       appData = res;
+      ensureAppDataFields();
       saveLocal();
       
       $('set-title').value = appData.settings.title || '我们的小窝';
@@ -3169,6 +3338,7 @@ function doImport(input) {
       var data = JSON.parse(e.target.result);
       if (confirm('导入将覆盖当前数据，确定？')) {
         appData = data;
+        ensureAppDataFields();
         saveLocal();
         
         $('set-title').value = appData.settings.title || '我们的小窝';
@@ -3565,6 +3735,306 @@ function compressImg(file, callback) {
   } else {
     setTimeout(window.checkBirthdayCard, 600);
   }
+
+})();
+
+// ============ 每日打卡模块 ============
+(function() {
+
+  // 数据迁移：确保 appData.checkins 存在
+  function ensureCheckins() {
+    if (!appData.checkins) appData.checkins = [];
+  }
+
+  // 今日日期字符串 yyyy-mm-dd
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  // 获取当前用户名
+  function myName() {
+    var sel = document.querySelector('.identity-btn.active');
+    if (sel) {
+      var t = sel.textContent.trim();
+      if (t && t !== '切换') return t;
+    }
+    return appData.settings.name2 || '我';
+  }
+
+  // 打开打卡弹窗
+  window.openCheckinModal = function() {
+    ensureCheckins();
+    var modal = $('checkin-modal');
+    modal.style.display = 'flex';
+    switchCheckinTab('write');
+    // 检查今天是否已打卡
+    var today = todayStr();
+    var me = myName();
+    var existing = appData.checkins.find(function(c) {
+      return c.date === today && c.author === me;
+    });
+    if (existing) {
+      $('checkin-today-tip').style.display = 'block';
+      $('checkin-good').value = existing.good || '';
+      $('checkin-improve').value = existing.improve || '';
+    } else {
+      $('checkin-today-tip').style.display = 'none';
+      $('checkin-good').value = '';
+      $('checkin-improve').value = '';
+    }
+  };
+
+  window.closeCheckinModal = function() {
+    $('checkin-modal').style.display = 'none';
+    stopAllVoice();
+  };
+
+  window.switchCheckinTab = function(tab) {
+    var isWrite = tab === 'write';
+    $('checkin-tab-write').style.background = isWrite ? '#e91e63' : 'transparent';
+    $('checkin-tab-write').style.color = isWrite ? '#fff' : '#999';
+    $('checkin-tab-history').style.background = isWrite ? 'transparent' : '#e91e63';
+    $('checkin-tab-history').style.color = isWrite ? '#999' : '#fff';
+    $('checkin-write-panel').style.display = isWrite ? 'block' : 'none';
+    $('checkin-history-panel').style.display = isWrite ? 'none' : 'block';
+    if (!isWrite) renderCheckinList();
+  };
+
+  // 提交打卡
+  window.submitCheckin = function() {
+    ensureCheckins();
+    var good = $('checkin-good').value.trim();
+    var improve = $('checkin-improve').value.trim();
+    if (!good && !improve) { showToast('请至少填写一项内容~'); return; }
+    var today = todayStr();
+    var me = myName();
+    // 更新或新增
+    var idx = appData.checkins.findIndex(function(c) { return c.date === today && c.author === me; });
+    var streak = calcStreak(me);
+    var entry;
+    if (idx >= 0) {
+      appData.checkins[idx].good = good;
+      appData.checkins[idx].improve = improve;
+      appData.checkins[idx].updatedAt = new Date().toISOString();
+      entry = appData.checkins[idx];
+      showToast('打卡已更新 ✓');
+    } else {
+      entry = {
+        id: 'ck_' + Date.now(),
+        date: today,
+        author: me,
+        good: good,
+        improve: improve,
+        streak: streak,
+        createdAt: new Date().toISOString(),
+        aiReply: '',
+        comments: []
+      };
+      appData.checkins.unshift(entry);
+      showToast('打卡成功！连续第 ' + streak + ' 天 🔥');
+    }
+    saveAndSync();
+    stopAllVoice();
+    // 请求 AI 点评（异步，不阻塞）
+    if (aiConfig.apiKey) {
+      setTimeout(function() { requestCheckinAI(entry); }, 500);
+    }
+    // 切换到历史 tab 展示结果
+    setTimeout(function() { switchCheckinTab('history'); }, 400);
+  };
+
+  // 计算连续打卡天数
+  function calcStreak(author) {
+    var dates = appData.checkins
+      .filter(function(c) { return c.author === author; })
+      .map(function(c) { return c.date; })
+      .sort()
+      .reverse();
+    if (!dates.length) return 1;
+    var count = 1;
+    var cur = new Date(todayStr());
+    // 今天已经算1天，往前查连续性
+    for (var i = 0; i < dates.length; i++) {
+      var prev = new Date(dates[i]);
+      var diff = Math.round((cur - prev) / 86400000);
+      if (diff === 1) { count++; cur = prev; }
+      else if (diff > 1) break;
+    }
+    return count;
+  }
+
+  // 请求 AI 点评
+  function requestCheckinAI(entry) {
+    var parts = [];
+    if (entry.good) parts.push('今天做得好的事：' + entry.good);
+    if (entry.improve) parts.push('可以改进的地方：' + entry.improve);
+    var prompt = '你是一个温暖鼓励的生活教练。用户分享了他们的每日打卡内容：\n' + parts.join('\n') +
+      '\n\n请用简洁温暖的语气（100-150字）给出具体的建议和鼓励，重点针对"可以改进的地方"给出可执行的小方法。不要用"亲爱的用户"这类称呼，直接开始。';
+    callAI(prompt).then(function(text) {
+      var idx2 = appData.checkins.findIndex(function(c) { return c.id === entry.id; });
+      if (idx2 >= 0) {
+        appData.checkins[idx2].aiReply = text;
+        saveAndSync();
+        renderCheckinList();
+      }
+    }).catch(function() {});
+  }
+
+  // 渲染打卡历史列表
+  function renderCheckinList() {
+    ensureCheckins();
+    var container = $('checkin-list-container');
+    if (!appData.checkins.length) {
+      container.innerHTML = '<div class="checkin-empty">还没有打卡记录，快去打第一卡吧 🌱</div>';
+      return;
+    }
+    var html = '';
+    var sorted = appData.checkins.slice().sort(function(a, b) {
+      return a.date < b.date ? 1 : -1;
+    });
+    sorted.forEach(function(entry, vi) {
+      var realIdx = appData.checkins.indexOf(entry);
+      var avatar = (entry.author || '?').charAt(0);
+      var streak = entry.streak || 1;
+      var aiBlock = '';
+      if (entry.aiReply) {
+        aiBlock = '<div class="checkin-ai-reply"><div class="checkin-ai-reply-label">🤖 AI 建议</div>' + escHtml(entry.aiReply) + '</div>';
+      } else if (aiConfig.apiKey) {
+        aiBlock = '<div class="checkin-ai-loading"><span class="checkin-ai-reply-label">🤖 AI 建议生成中</span><span>…</span></div>';
+      }
+      // 评论
+      var commentsHtml = '';
+      (entry.comments || []).forEach(function(cm) {
+        commentsHtml += '<div class="checkin-comment-item">' +
+          '<div class="checkin-comment-avatar">' + escHtml(cm.author.charAt(0)) + '</div>' +
+          '<div class="checkin-comment-body">' +
+            '<div class="checkin-comment-author">' + escHtml(cm.author) + '</div>' +
+            '<div class="checkin-comment-text">' + escHtml(cm.text) + '</div>' +
+            '<div class="checkin-comment-time">' + cm.time + '</div>' +
+          '</div></div>';
+      });
+      html += '<div class="checkin-card">' +
+        '<div class="checkin-card-header">' +
+          '<div><span class="checkin-card-user">' + escHtml(entry.author) + '</span>' +
+          '<span class="checkin-card-streak">🔥 连续' + streak + '天</span></div>' +
+          '<div class="checkin-card-date">' + entry.date + '</div>' +
+        '</div>' +
+        (entry.good ? '<div class="checkin-field"><div class="checkin-field-label">✨ 做得好</div><div class="checkin-field-content">' + escHtml(entry.good) + '</div></div>' : '') +
+        (entry.improve ? '<div class="checkin-field"><div class="checkin-field-label">💡 可以更好</div><div class="checkin-field-content">' + escHtml(entry.improve) + '</div></div>' : '') +
+        aiBlock +
+        '<div class="checkin-comments">' + commentsHtml +
+          '<div class="checkin-add-comment">' +
+            '<input class="checkin-comment-input" id="checkin-cm-' + realIdx + '" placeholder="留言鼓励一下…" />' +
+            '<button class="checkin-comment-send" onclick="submitCheckinComment(' + realIdx + ')">发送</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  // 提交打卡评论
+  window.submitCheckinComment = function(idx) {
+    ensureCheckins();
+    var input = $('checkin-cm-' + idx);
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+    if (!appData.checkins[idx].comments) appData.checkins[idx].comments = [];
+    var now = new Date();
+    appData.checkins[idx].comments.push({
+      author: myName(),
+      text: text,
+      time: now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    });
+    input.value = '';
+    saveAndSync();
+    renderCheckinList();
+  };
+
+  // ===== 语音输入 =====
+  var voiceRecognition = null;
+  var voiceTarget = null; // 'good' | 'improve'
+
+  window.toggleVoice = function(target) {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      showToast('当前浏览器不支持语音输入，建议使用 Chrome');
+      return;
+    }
+    if (voiceTarget === target && voiceRecognition) {
+      // 停止当前录音
+      voiceRecognition.stop();
+      return;
+    }
+    stopAllVoice();
+    voiceTarget = target;
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.lang = 'zh-CN';
+    voiceRecognition.interimResults = true;
+    voiceRecognition.continuous = true;
+    var btn = $('voice-btn-' + target);
+    var hint = $('voice-hint-' + target);
+    btn.classList.add('recording');
+    btn.textContent = '⏹ 停止录音';
+    hint.textContent = '正在聆听…';
+    voiceRecognition.onresult = function(e) {
+      var transcript = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      var ta = $('checkin-' + target);
+      var base = ta.dataset.voiceBase || ta.value;
+      ta.dataset.voiceBase = base;
+      ta.value = base + (base && transcript ? '\n' : '') + transcript;
+    };
+    voiceRecognition.onend = function() {
+      var ta = $('checkin-' + target);
+      ta.dataset.voiceBase = ta.value;
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 语音输入';
+      hint.textContent = '';
+      voiceRecognition = null;
+      voiceTarget = null;
+    };
+    voiceRecognition.onerror = function(e) {
+      showToast('语音识别出错：' + e.error);
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ 语音输入';
+      hint.textContent = '';
+      voiceRecognition = null;
+      voiceTarget = null;
+    };
+    voiceRecognition.start();
+  };
+
+  function stopAllVoice() {
+    if (voiceRecognition) {
+      try { voiceRecognition.stop(); } catch(e) {}
+      voiceRecognition = null;
+    }
+    voiceTarget = null;
+    ['good', 'improve'].forEach(function(t) {
+      var btn = $('voice-btn-' + t);
+      var hint = $('voice-hint-' + t);
+      if (btn) { btn.classList.remove('recording'); btn.textContent = '🎙️ 语音输入'; }
+      if (hint) hint.textContent = '';
+    });
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // 点击弹窗背景关闭
+  $('checkin-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCheckinModal();
+  });
+
+  // 在 OSS 拉取数据后，同步可能无 checkins 字段，做兼容
+  var _origSync = window.applyCloudData;
+  // 兼容：数据合并后确保 checkins 字段
+  var _origLoadCloud = window.onCloudDataLoaded;
 
 })();
 </script>
